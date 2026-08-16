@@ -1,0 +1,9 @@
+{
+  "name": "Chrono Defense",
+  "short_name": "Chrono Defense",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#17130f",
+  "theme_color": "#17130f"
+}
