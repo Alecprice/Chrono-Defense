@@ -7,6 +7,7 @@ import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
 import { nextTowerUnlock } from '../core/unlocks.js';
 import { milestoneProgress } from '../data/worlds/stoneAge/milestones.js';
 import { StoneAgeVillage } from './StoneAgeVillage.jsx';
+import { StoneAgeBadges } from './StoneAgeBadges.jsx';
 import { DailyChallengeCard } from './DailyChallengeCard.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
@@ -65,6 +66,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
 
       <aside className="campaign-side">
         <StoneAgeVillage completedMap={completed}/>
+        <StoneAgeBadges completedMap={completed}/>
 
         <div className="milestone-strip"><div><small>CHRONICLE MILESTONES</small><b>{milestones.unlocked.length}/{milestones.total}</b></div><span>{milestones.next?`${milestones.next.icon} Next: ${milestones.next.label}`:'🏆 All Stone Age milestones complete'}</span></div>
 
