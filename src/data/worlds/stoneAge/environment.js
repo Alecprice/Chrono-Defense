@@ -4,30 +4,35 @@ const REGION_ENVIRONMENTS = {
     name: 'Living Valley',
     summary: 'Rivers and fertile ground shape the safest early battlefields.',
     hazards: ['River crossings slow ground enemies', 'Cliff perches improve long-range towers'],
+    action: { id:'bridge', icon:'🪵', name:'Raise Bridge', description:'Slow every ground enemy briefly at the river crossing.', cooldown:24 },
   },
   'Wild Jungle': {
     icon: '🌴',
     name: 'Deep Jungle',
     summary: 'Dense jungle routes hide cave ambushes and thick brush.',
     hazards: ['Caves can add ambush enemies', 'Brush reduces some tower range'],
+    action: { id:'seal-cave', icon:'🪨', name:'Seal Cave', description:'Prevent the next cave ambush and damage enemies near the cave.', cooldown:28 },
   },
   'Frozen Age': {
     icon: '❄️',
     name: 'Frozen Age',
     summary: 'Ice lanes create dangerous bursts of enemy speed.',
     hazards: ['Ice increases enemy movement speed', 'High ground remains valuable'],
+    action: { id:'break-ice', icon:'🧊', name:'Break Ice', description:'Crack the ice and heavily slow enemies currently crossing it.', cooldown:26 },
   },
   'Burning Lands': {
     icon: '🌋',
     name: 'Burning Lands',
     summary: 'Lava and volcanic vents turn every path into a hazard.',
     hazards: ['Lava burns non-resistant enemies', 'Volcanic maps favor fire-resistant enemies'],
+    action: { id:'vent-eruption', icon:'🌋', name:'Open Vent', description:'Trigger a controlled eruption that burns enemies on the path.', cooldown:30 },
   },
   'Lost World': {
     icon: '🦖',
     name: 'Lost World',
     summary: 'Ancient terrain combines hazards from every earlier region.',
     hazards: ['Mixed ice, lava, caves and cliffs', 'Elite enemy waves appear more often'],
+    action: { id:'boulder-roll', icon:'🪨', name:'Roll Boulder', description:'Release an ancient boulder that crushes the leading enemy pack.', cooldown:32 },
   },
 };
 
@@ -98,4 +103,32 @@ export function towerEnvironmentRangeMultiplier(cell, environment) {
   if (environment.cliffCells.includes(cell)) return 1.22;
   if (environment.brushCells.includes(cell)) return .88;
   return 1;
+}
+
+export function actionEffect(actionId, enemies = [], environment) {
+  const living = enemies.filter(enemy => !enemy.dead && !enemy.escaped);
+  if (!living.length) return { enemies:living, message:'No enemies are in range of the environment action.' };
+  const next=living.map(enemy=>({...enemy}));
+  if(actionId==='bridge'){
+    next.forEach(enemy=>{if(!enemy.flying)enemy.environmentSlow=Math.max(enemy.environmentSlow??0,3.5)});
+    return {enemies:next,message:'🪵 The bridge rises — ground enemies are slowed!'};
+  }
+  if(actionId==='seal-cave'){
+    const caveIndex=Math.max(0,environment.caveCell==null?0:environment.caveCell);
+    next.forEach(enemy=>{if(Math.abs((enemy.currentCell??0)-caveIndex)<=8)enemy.hp-=Math.max(25,enemy.maxHp*.08)});
+    return {enemies:next,message:'🪨 The cave mouth collapses onto the ambush route!',sealCave:true};
+  }
+  if(actionId==='break-ice'){
+    next.forEach(enemy=>{if(environment.iceCells.includes(enemy.currentCell))enemy.environmentSlow=Math.max(enemy.environmentSlow??0,5)});
+    return {enemies:next,message:'🧊 Cracked ice traps enemies in the frozen lane!'};
+  }
+  if(actionId==='vent-eruption'){
+    next.forEach(enemy=>{if(!enemy.flying){enemy.burnDps=Math.max(enemy.burnDps??0,34);enemy.burnTime=Math.max(enemy.burnTime??0,4)}});
+    return {enemies:next,message:'🌋 A controlled eruption scorches the path!'};
+  }
+  if(actionId==='boulder-roll'){
+    next.sort((a,b)=>(b.progress??0)-(a.progress??0)).slice(0,6).forEach(enemy=>{enemy.hp-=Math.max(90,enemy.maxHp*.18);enemy.stunTime=Math.max(enemy.stunTime??0,1.4)});
+    return {enemies:next,message:'🪨 The ancient boulder crushes the leading pack!'};
+  }
+  return {enemies:next,message:'The environment shifts.'};
 }
