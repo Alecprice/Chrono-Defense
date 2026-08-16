@@ -20,14 +20,27 @@ function rewardFor(enemy, mode={}){
   };
 }
 
+function regionModifiers(mapNumber, enemy){
+  const region=Math.min(4,Math.floor((mapNumber-1)/5));
+  if(region===0) return {speed:.95,hp:1};
+  if(region===1) return {speed:1.03,hp:1};
+  if(region===2) return {speed:1.10,hp:1.05};
+  if(region===3){
+    const fireResistant=(enemy.fireResistance??0)>=.45;
+    return {speed:1.02,hp:fireResistant?1.08:.94};
+  }
+  return {speed:1.08,hp:1.10};
+}
+
 function scaleEnemy(base,{mapNumber,waveNumber,mode={}}){
-  const scale=(1+(mapNumber-1)*.055+(waveNumber-1)*.08)*(mode.hp??1);
+  const region=regionModifiers(mapNumber,base);
+  const scale=(1+(mapNumber-1)*.055+(waveNumber-1)*.08)*(mode.hp??1)*(region.hp??1);
   const maxHp=Math.round(base.hp*scale);
   return {
     ...base,
     hp:maxHp,
     maxHp,
-    speed:base.speed*(1+Math.min(.25,(waveNumber-1)*.015))*(mode.speed??1),
+    speed:base.speed*(1+Math.min(.25,(waveNumber-1)*.015))*(mode.speed??1)*(region.speed??1),
     reward:rewardFor(base,mode),
   };
 }
@@ -68,22 +81,24 @@ export function buildWave({mapNumber=1,waveNumber=1,mode={}}){
 
   const region=Math.min(4,Math.floor((mapNumber-1)/5));
 
-  // Jungle and Lost World caves create ambush packs on every third wave.
   if((region===1||region===4)&&mapNumber%2===0&&waveNumber%3===0){
     const ambushBase=byId[region===1?'raptor':'alpha-raptor'];
     const ambushCount=2+Math.floor(mapNumber/10);
     for(let i=0;i<ambushCount;i++) units.splice(Math.min(units.length,2+i),0,scaleEnemy(ambushBase,{mapNumber,waveNumber,mode}));
   }
 
-  // Frozen maps favor heavy armored creatures in later waves.
   if(region===2&&waveNumber>=6){
     const heavy=byId[waveNumber>=9?'war-mammoth':'mammoth'];
     units.push(scaleEnemy(heavy,{mapNumber,waveNumber,mode}));
   }
 
-  // Burning Lands introduce more dinosaurs and fire-resistant elites.
   if(region===3&&waveNumber>=5){
     const elite=byId[waveNumber>=9?'elder-dinosaur':'trex-juvenile'];
+    units.push(scaleEnemy(elite,{mapNumber,waveNumber,mode}));
+  }
+
+  if(region===4&&waveNumber>=7){
+    const elite=byId[waveNumber>=9?'titan-beast':'alpha-raptor'];
     units.push(scaleEnemy(elite,{mapNumber,waveNumber,mode}));
   }
 
