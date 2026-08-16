@@ -35,6 +35,16 @@ export function StoneAgeExperience() {
   },[save.settings]);
 
   useEffect(()=>{
+    if(save.settings?.haptics===false||typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return undefined;
+    const pulse=event=>{
+      const button=event.target?.closest?.('button');
+      if(button&&!button.disabled)navigator.vibrate(8);
+    };
+    document.addEventListener('pointerup',pulse,{passive:true});
+    return()=>document.removeEventListener('pointerup',pulse);
+  },[save.settings?.haptics]);
+
+  useEffect(()=>{
     const mode=stoneAgeModes.find(item=>item.id===selectedMode);
     if(mode&&!mode.unlock(stone)) setSelectedMode('normal');
   },[selectedMode,stone.completedMap,stone.totems]);
