@@ -10,6 +10,7 @@ import './styles/settings.css';
 import './styles/progression.css';
 import './styles/tutorial.css';
 import './styles/meta.css';
+import './styles/retro.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
