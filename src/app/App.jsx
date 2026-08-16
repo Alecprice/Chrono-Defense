@@ -7,6 +7,7 @@ import { SettingsBridge } from '../components/SettingsBridge.jsx';
 import { DragPlacementBridge } from '../components/DragPlacementBridge.jsx';
 import { LiveAssetBridge } from '../components/LiveAssetBridge.jsx';
 import { BattleIntelBridge } from '../components/BattleIntelBridge.jsx';
+import { KeyboardControls } from '../components/KeyboardControls.jsx';
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
       <DragPlacementBridge />
       <LiveAssetBridge />
       <BattleIntelBridge />
+      <KeyboardControls />
     </FullscreenShell>
   );
 }
