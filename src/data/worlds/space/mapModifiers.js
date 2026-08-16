@@ -1,0 +1,25 @@
+export function applySpaceMapModifiers(units,mapNumber,waveNumber){
+ return units.map((unit,index)=>{
+  const next={...unit};
+  if(mapNumber===2)next.speed*=1.08;
+  if(mapNumber===3&&index%4===0)next.shieldHp=Math.round((next.shieldHp??0)+next.maxHp*.1);
+  if(mapNumber===4){next.matterReward=Math.round((next.matterReward??4)*1.18);next.speed*=1.06;}
+  if(mapNumber===6&&index%3===0)next.cloaked=true;
+  if(mapNumber===7){next.speed*=index%2?1.2:.9;}
+  if(mapNumber===8&&index%4===0)next.carrier=true;
+  if(mapNumber===9&&index%5===0){next.gravityResistant=true;next.speed*=1.14;}
+  if(mapNumber===11)next.speed*=1.14;
+  if(mapNumber===12&&index%3===0)next.phase=true;
+  if(mapNumber===13){next.armor=Math.min(.86,(next.armor??0)+.15);next.speed*=.92;}
+  if(mapNumber===14&&index%4===0)next.cloaked=true;
+  if(mapNumber===16){next.hp=Math.round(next.hp*1.12);next.maxHp=next.hp;next.speed*=1.08;}
+  if(mapNumber===17&&index%3===0){next.phase=true;next.cloaked=true;}
+  if(mapNumber===18){next.matterReward=Math.round((next.matterReward??4)*1.55);next.energyReward=Math.max(1,(next.energyReward??1)+1);next.hp=Math.round(next.hp*1.16);next.maxHp=next.hp;}
+  if(mapNumber===19&&waveNumber>=5&&index%5===0){next.hp=Math.round(next.hp*1.7);next.maxHp=next.hp;next.armor=Math.min(.9,(next.armor??0)+.16);next.elite=true;}
+  if(mapNumber===21){next.speed*=1.12;next.shieldHp=Math.round((next.shieldHp??0)+next.maxHp*.08);}
+  if(mapNumber===22&&index%3===0)next.cloaked=true;
+  if(mapNumber===23){next.matterReward=Math.round((next.matterReward??4)*.86);next.speed*=1.18;}
+  if(mapNumber===24){next.hp=Math.round(next.hp*1.26);next.maxHp=next.hp;next.armor=Math.min(.92,(next.armor??0)+.1);next.speed*=1.1;}
+  return next;
+ });
+}
