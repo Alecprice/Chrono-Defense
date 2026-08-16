@@ -3,7 +3,7 @@ import { loadSave, persistSave } from '../core/save.js';
 import { stoneAgeAchievements, newlyUnlockedAchievements } from '../data/worlds/stoneAge/achievements.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
-import { StoneAgeBattleEnhanced } from './StoneAgeBattleEnhanced.jsx';
+import { StoneAgeBattleV3 } from './StoneAgeBattleV3.jsx';
 import { StoneAgeCodex } from './StoneAgeCodex.jsx';
 
 export function StoneAgeExperience() {
@@ -61,7 +61,7 @@ export function StoneAgeExperience() {
       onStart={enterBattle}
       onAchievements={()=>setShowAchievements(true)}
       onCodex={()=>setShowCodex(true)}
-    /> : <StoneAgeBattleEnhanced
+    /> : <StoneAgeBattleV3
       key={`${selectedMap}-${selectedMode}-${battleKey}`}
       mapNumber={selectedMap}
       modeId={selectedMode}
