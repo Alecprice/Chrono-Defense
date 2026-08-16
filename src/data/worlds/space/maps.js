@@ -1,0 +1,9 @@
+const raw=[
+['First Orbit','Simple orbital lane around the colony.'],['Moonline','Tight lunar turns favor short-range control.'],['Asteroid Pass','Armored asteroid traffic enters the battle.'],['Solar Wake','Fast ships surf high-speed solar lanes.'],['King of Rocks','First Space boss arena.'],
+['Alien Frontier','Bio-ships and swarm craft arrive.'],['Shadow Orbit','Stealth fleets require support coverage.'],['Carrier Lane','Enemy carriers create secondary waves.'],['Gravity Sea','Control resistance becomes important.'],['Hive World','Second boss arena.'],
+['Deep Space Relay','Long lanes reward orbital range.'],['Comet Belt','High-speed comet riders pressure shields.'],['Void Crossing','Regenerating void creatures appear.'],['Dread Route','Heavy cruisers combine with stealth fleets.'],['Leviathan Dark','Third boss arena.'],
+['Outer Colony','Resource-starved defense around a remote settlement.'],['War Fleet','Elite carriers and dreadnoughts arrive early.'],['Black Star','Stealth and regeneration overlap.'],['Cracker Approach','Planet-cracking ships threaten massive colony damage.'],['World Breaker','Fourth boss arena.'],
+['Event Horizon','Gravity mechanics intensify.'],['Dead Galaxy','Minimal safe build space.'],['Omega Armada','Maximum-tier fleets dominate every wave.'],['Final Orbit','All Space enemy families combine.'],['The Last Sky','Space final boss arena.']
+];
+const regions=[['Home System','🌍'],['Alien Frontier','🛸'],['Deep Space','🌌'],['War Zone','⚔️'],['End of Space','🕳️']];
+export const spaceMaps=raw.map(([name,mechanic],i)=>{const number=i+1,[region,icon]=regions[Math.floor(i/5)];return{id:`space-${String(number).padStart(2,'0')}`,number,name,region,icon,mechanic,boss:number%5===0,starCores:['Complete the map','Keep Colony Integrity above 75%',number%2?'Finish with planetary shield remaining':'Use at least one gravity defense']};});
