@@ -24,6 +24,7 @@ import './styles/interactions.css';
 import './styles/advanced-codex.css';
 import './styles/late-era-progress.css';
 import './styles/battle-intel.css';
+import './styles/keyboard.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
