@@ -12,6 +12,7 @@ import './styles/tutorial.css';
 import './styles/meta.css';
 import './styles/retro.css';
 import './styles/retro-meta.css';
+import './styles/future.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
