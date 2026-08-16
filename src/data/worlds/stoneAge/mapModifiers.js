@@ -1,0 +1,27 @@
+export function applyStoneAgeMapModifiers(units,mapNumber,waveNumber){return units.flatMap((unit,index)=>{const next={...unit,reward:{...(unit.reward??{})}};switch(mapNumber){
+case 1:break;
+case 2:if(index%3===0){next.hp=Math.round(next.hp*1.08);next.maxHp=next.hp;next.reward.wood=(next.reward.wood??0)+1}break;
+case 3:if(!next.flying)next.speed*=.88;break;
+case 4:next.reward.food=Math.max(1,Math.round((next.reward.food??1)*1.65));break;
+case 5:break;
+case 6:next.speed*=1.06;if(index%4===0)next.pack=true;break;
+case 7:if(index%2===0)next.speed*=1.13;else next.hp=Math.round(next.hp*1.12),next.maxHp=next.hp;break;
+case 8:if(waveNumber%3===0&&index<2){next.speed*=1.32;next.ambush=true}break;
+case 9:next.reward.wood=(next.reward.wood??0)+1;next.reward.stone=(next.reward.stone??0)+1;next.reward.food=(next.reward.food??0)+1;break;
+case 10:break;
+case 11:next.speed*=.90;next.hp=Math.round(next.hp*1.06);next.maxHp=next.hp;break;
+case 12:if(!next.flying)next.speed*=1.24;break;
+case 13:if(index%2===0&&!next.flying)next.speed*=.82;else next.speed*=1.12;break;
+case 14:if(String(next.id).includes('mammoth')){next.hp=Math.round(next.hp*1.2);next.maxHp=next.hp;next.armor=Math.min(.85,(next.armor??0)+.08)}break;
+case 15:break;
+case 16:next.fireResistance=Math.max(next.fireResistance??0,.25);next.armor=Math.min(.8,(next.armor??0)+.04);break;
+case 17:next.fireResistance=Math.max(next.fireResistance??0,index%3===0?.7:.2);break;
+case 18:if(index%4===0){next.elite=true;next.hp=Math.round(next.hp*1.28);next.maxHp=next.hp;next.speed*=1.08}break;
+case 19:next.armor=Math.min(.86,(next.armor??0)+.12);next.speed*=.94;break;
+case 20:break;
+case 21:next.hp=Math.round(next.hp*.88);next.maxHp=next.hp;next.speed*=1.08;break;
+case 22:if(index%3===0)next.flying=true;else if(index%3===1)next.armor=Math.min(.86,(next.armor??0)+.1);else next.speed*=1.18;break;
+case 23:next.armor=Math.min(.88,(next.armor??0)+.08);next.reward.stone=(next.reward.stone??0)+1;break;
+case 24:if(index%4===0)next.speed*=1.2;if(index%4===1)next.armor=Math.min(.9,(next.armor??0)+.14);if(index%4===2)next.regeneration=Math.max(next.regeneration??0,.01);if(index%4===3)next.fireResistance=Math.max(next.fireResistance??0,.55);break;
+case 25:next.hp=Math.round(next.hp*1.12);next.maxHp=next.hp;break;
+default:break;}return[next]})}
