@@ -1,0 +1,5 @@
+import{useEffect}from'react';
+import{activeDailyMission,completeDailyMission}from'../core/eraDaily.js';
+const resultSelectors=['.retro-result','.future-result','.space-result'];
+function successText(node){const text=node?.textContent?.toUpperCase()??'';return text.includes('STAGE CLEAR')||text.includes('GRID SECURE')||text.includes('CORE SECURE')||text.includes('SYSTEM SAVED')||text.includes('COLONY SECURE')}
+export function DailyMissionBridge(){useEffect(()=>{let completedId=null;const check=()=>{const mission=activeDailyMission();if(!mission||mission.id===completedId)return;const result=resultSelectors.map(s=>document.querySelector(s)).find(Boolean);if(result&&successText(result)){completedId=mission.id;completeDailyMission({world:mission.world,mapNumber:mission.mapNumber,challengeId:mission.challengeId})}};const observer=new MutationObserver(check);observer.observe(document.body,{subtree:true,childList:true,characterData:true});const timer=setInterval(check,400);return()=>{observer.disconnect();clearInterval(timer)}},[]);return null;}
