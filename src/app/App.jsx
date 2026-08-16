@@ -8,6 +8,7 @@ import { DragPlacementBridge } from '../components/DragPlacementBridge.jsx';
 import { LiveAssetBridge } from '../components/LiveAssetBridge.jsx';
 import { BattleIntelBridge } from '../components/BattleIntelBridge.jsx';
 import { KeyboardControls } from '../components/KeyboardControls.jsx';
+import { DailyMissionBridge } from '../components/DailyMissionBridge.jsx';
 
 export function App() {
   return (
@@ -20,6 +21,7 @@ export function App() {
       <LiveAssetBridge />
       <BattleIntelBridge />
       <KeyboardControls />
+      <DailyMissionBridge />
     </FullscreenShell>
   );
 }
