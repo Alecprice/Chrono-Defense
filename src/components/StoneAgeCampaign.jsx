@@ -6,7 +6,7 @@ import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
-export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements }) {
+export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex }) {
   const stone=save.worlds['stone-age'];
   const map=stoneAgeMaps[selectedMap-1];
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
@@ -22,7 +22,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         <span><b>🗿 {stone.totems}/75</b><small>Totems</small></span>
         <span><b>🔥 {stone.mastery}/100</b><small>Mastery</small></span>
         <span><b>🏆 {(stone.achievements??[]).length}/100</b><small>Achievements</small></span>
-        <button onClick={onAchievements}>View Achievements</button>
+        <button onClick={onCodex}>Field Guide</button>
+        <button onClick={onAchievements}>Achievements</button>
       </div>
     </header>
 
