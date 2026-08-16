@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { stoneAgeMaps } from '../data/worlds/stoneAge/maps.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
+import { getStoneAgeLayout } from '../data/worlds/stoneAge/layouts.js';
+import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
@@ -8,6 +10,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
   const stone=save.worlds['stone-age'];
   const map=stoneAgeMaps[selectedMap-1];
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
+  const environment=useMemo(()=>getStoneAgeEnvironment(map,getStoneAgeLayout(selectedMap)),[map,selectedMap]);
   const unlockedModeIds=useMemo(()=>new Set(stoneAgeModes.filter(item=>item.unlock(stone)).map(item=>item.id)),[stone]);
   const completed=Math.max(0,stone.completedMap??0);
   const progress=Math.round(completed/25*100);
@@ -51,6 +54,10 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         <div className="selected-map-card">
           <div className="selected-map-art">{map.icon}{map.boss?'👑':''}</div>
           <div><small>MAP {map.number} • {map.region}</small><h2>{map.name}</h2><p>{map.mechanic}</p></div>
+          <div className="environment-preview">
+            <div><b>{environment.icon} {environment.name}</b><small>{environment.summary}</small></div>
+            <div className="hazard-chips">{environment.hazards.map(hazard=><span key={hazard}>{hazard}</span>)}</div>
+          </div>
           <div className="totem-objectives">{map.totems.map((objective,index)=><span key={objective}>🗿 <b>{index+1}</b> {objective}</span>)}</div>
         </div>
 
@@ -65,7 +72,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         </div>
 
         <div className="launch-card">
-          <div><b>{mode.icon} {mode.name}</b><small>{mode.waves} waves • {map.boss?'Boss encounter':'Standard map'}</small></div>
+          <div><b>{mode.icon} {mode.name}</b><small>{mode.waves} waves • {map.boss?'Boss encounter':'Standard map'} • {environment.name}</small></div>
           <button className="launch-button" onClick={onStart}>Enter Battle →</button>
         </div>
       </aside>
