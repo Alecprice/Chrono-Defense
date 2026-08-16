@@ -5,6 +5,7 @@ import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
 import { StoneAgeBattleV3 } from './StoneAgeBattleV3.jsx';
 import { StoneAgeCodex } from './StoneAgeCodex.jsx';
+import { StoneAgeTutorial } from './StoneAgeTutorial.jsx';
 import { GameSettings } from './GameSettings.jsx';
 
 export function StoneAgeExperience() {
@@ -65,6 +66,7 @@ export function StoneAgeExperience() {
   const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
+  const finishTutorial=()=>setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -86,6 +88,8 @@ export function StoneAgeExperience() {
       onExit={exitBattle}
       onNextMap={nextMap}
     />}
+
+    {!stone.tutorialComplete&&<StoneAgeTutorial onComplete={finishTutorial}/>} 
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
       <div className="achievement-book" onClick={event=>event.stopPropagation()}>
