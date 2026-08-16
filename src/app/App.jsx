@@ -12,6 +12,7 @@ import { DailyMissionBridge } from '../components/DailyMissionBridge.jsx';
 import { BossEntranceBridge } from '../components/BossEntranceBridge.jsx';
 import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
 import { ShopAffordabilityBridge } from '../components/ShopAffordabilityBridge.jsx';
+import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
       <BossEntranceBridge />
       <BaseImpactBridge />
       <ShopAffordabilityBridge />
+      <MapObjectiveBridge />
     </FullscreenShell>
   );
 }
