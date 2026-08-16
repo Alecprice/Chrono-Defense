@@ -3,6 +3,7 @@ import { FullscreenShell } from '../components/FullscreenShell.jsx';
 import { ChronoRouter } from '../components/ChronoRouter.jsx';
 import { AppStatus } from '../components/AppStatus.jsx';
 import { GameAudioBridge } from '../components/GameAudioBridge.jsx';
+import { SettingsBridge } from '../components/SettingsBridge.jsx';
 
 export function App() {
   return (
@@ -10,6 +11,7 @@ export function App() {
       <ChronoRouter />
       <AppStatus />
       <GameAudioBridge />
+      <SettingsBridge />
     </FullscreenShell>
   );
 }
