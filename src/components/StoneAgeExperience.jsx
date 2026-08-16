@@ -3,7 +3,7 @@ import { loadSave, persistSave } from '../core/save.js';
 import { stoneAgeAchievements, newlyUnlockedAchievements } from '../data/worlds/stoneAge/achievements.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
-import { StoneAgeBattle } from './StoneAgeBattle.jsx';
+import { StoneAgeBattleEnhanced } from './StoneAgeBattleEnhanced.jsx';
 import { StoneAgeCodex } from './StoneAgeCodex.jsx';
 
 export function StoneAgeExperience() {
@@ -12,6 +12,7 @@ export function StoneAgeExperience() {
   const [screen,setScreen]=useState('campaign');
   const [selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,stone.highestMap??1)));
   const [selectedMode,setSelectedMode]=useState('normal');
+  const [battleKey,setBattleKey]=useState(0);
   const [showAchievements,setShowAchievements]=useState(false);
   const [showCodex,setShowCodex]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
@@ -46,12 +47,9 @@ export function StoneAgeExperience() {
   },[achievementToast]);
 
   const unlockedSet=useMemo(()=>new Set(stone.achievements??[]),[stone.achievements]);
-
-  const enterBattle=()=>setScreen('battle');
-  const exitBattle=()=>{
-    setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));
-    setScreen('campaign');
-  };
+  const enterBattle=()=>{setBattleKey(value=>value+1);setScreen('battle')};
+  const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
+  const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -63,13 +61,14 @@ export function StoneAgeExperience() {
       onStart={enterBattle}
       onAchievements={()=>setShowAchievements(true)}
       onCodex={()=>setShowCodex(true)}
-    /> : <StoneAgeBattle
+    /> : <StoneAgeBattleEnhanced
+      key={`${selectedMap}-${selectedMode}-${battleKey}`}
       mapNumber={selectedMap}
       modeId={selectedMode}
       save={save}
       setSave={setSave}
       onExit={exitBattle}
-      onNextMap={(next)=>{setSelectedMap(next);setScreen('battle')}}
+      onNextMap={nextMap}
     />}
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
