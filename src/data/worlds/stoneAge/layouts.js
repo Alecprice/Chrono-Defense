@@ -13,17 +13,9 @@ const nodeSets = [
   { wood:[1], stone:[28,52], food:[10,57] },
   { wood:[4,49], stone:[30,54], food:[15] }
 ];
-
-export function getStoneAgeLayout(mapNumber=1){
-  const region = Math.max(0, Math.min(4, Math.floor((mapNumber-1)/5)));
-  const variant = (mapNumber-1)%5;
-  const base = patterns[(region + variant) % patterns.length];
-  const resourceNodes = nodeSets[(region*2 + variant) % nodeSets.length];
-  return { path:[...base], resourceNodes };
-}
-
-export function cellCenter(cell){
-  const col = cell % 12;
-  const row = Math.floor(cell / 12);
-  return { x: (col + .5) * 100, y: (row + .5) * 100 };
-}
+function h(cell){const r=Math.floor(cell/12),c=cell%12;return r*12+(11-c)}
+function v(cell){const r=Math.floor(cell/12),c=cell%12;return(4-r)*12+c}
+function transformCells(cells,mode){let out=[...cells];if(mode&1)out=out.map(h);if(mode&2)out=out.map(v);if(mode&4)out.reverse();return out}
+function transformedNodes(nodes,mode,path){const used=new Set(path),mapCells=cells=>transformCells(cells,mode).filter(cell=>!used.has(cell));return{wood:mapCells(nodes.wood),stone:mapCells(nodes.stone),food:mapCells(nodes.food)}}
+export function getStoneAgeLayout(mapNumber=1){const n=Math.max(1,Math.min(25,mapNumber)),region=Math.floor((n-1)/5),variant=(n-1)%5,base=patterns[(region+variant)%patterns.length],mode=(n*5+region*3+variant)%8,path=transformCells(base,mode),nodes=nodeSets[(region*2+variant)%nodeSets.length];return{path,resourceNodes:transformedNodes(nodes,mode,path),layoutId:`stone-layout-${n}`}}
+export function cellCenter(cell){const col=cell%12,row=Math.floor(cell/12);return{x:(col+.5)*100,y:(row+.5)*100}}
