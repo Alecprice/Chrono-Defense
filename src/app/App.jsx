@@ -11,6 +11,7 @@ import { KeyboardControls } from '../components/KeyboardControls.jsx';
 import { DailyMissionBridge } from '../components/DailyMissionBridge.jsx';
 import { BossEntranceBridge } from '../components/BossEntranceBridge.jsx';
 import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
+import { ShopAffordabilityBridge } from '../components/ShopAffordabilityBridge.jsx';
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
       <DailyMissionBridge />
       <BossEntranceBridge />
       <BaseImpactBridge />
+      <ShopAffordabilityBridge />
     </FullscreenShell>
   );
 }
