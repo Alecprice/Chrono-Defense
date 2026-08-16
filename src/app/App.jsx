@@ -9,6 +9,7 @@ import { LiveAssetBridge } from '../components/LiveAssetBridge.jsx';
 import { BattleIntelBridge } from '../components/BattleIntelBridge.jsx';
 import { KeyboardControls } from '../components/KeyboardControls.jsx';
 import { DailyMissionBridge } from '../components/DailyMissionBridge.jsx';
+import { BossEntranceBridge } from '../components/BossEntranceBridge.jsx';
 
 export function App() {
   return (
@@ -22,6 +23,7 @@ export function App() {
       <BattleIntelBridge />
       <KeyboardControls />
       <DailyMissionBridge />
+      <BossEntranceBridge />
     </FullscreenShell>
   );
 }
