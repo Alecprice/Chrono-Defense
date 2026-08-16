@@ -3,8 +3,18 @@ import { stoneAgeTowers } from '../data/worlds/stoneAge/towers.js';
 import { stoneAgeEnemies } from '../data/worlds/stoneAge/enemies.js';
 import { stoneAgeBosses } from '../data/worlds/stoneAge/bosses.js';
 import { unlockedTowerIds } from '../core/unlocks.js';
+import { AssetSprite } from './AssetSprite.jsx';
 
 const tabs=[['towers','🛖 Towers'],['enemies','🐾 Enemies'],['bosses','👑 Bosses']];
+
+function enemyFallback(enemy){
+  if(enemy.flying)return'🦅';
+  if(enemy.id.includes('mammoth'))return'🐘';
+  if(enemy.id.includes('raptor')||enemy.id.includes('dinosaur')||enemy.id.includes('trex'))return'🦖';
+  if(enemy.id.includes('snake'))return'🐍';
+  if(enemy.tags?.includes('tribe'))return'🪓';
+  return'🐾';
+}
 
 function traitLabels(enemy){
   const labels=[];
@@ -30,15 +40,15 @@ export function StoneAgeCodex({stoneSave,onClose}){
         {tab==='towers'&&<div className="codex-grid towers">{stoneAgeTowers.map(tower=>{
           const isUnlocked=unlocked.has(tower.id);
           return <article key={tower.id} className={`codex-entry ${isUnlocked?'':'locked'}`}>
-            <div className="codex-icon">{isUnlocked?tower.icon:'🔒'}</div>
+            <div className="codex-icon">{isUnlocked?<AssetSprite kind="towers" id={tower.spriteId??tower.id} fallback={tower.icon} alt={tower.name}/>:<span>🔒</span>}</div>
             <div className="codex-copy"><small>{tower.role}</small><h3>{isUnlocked?tower.name:'Unknown Defense'}</h3>{isUnlocked&&<><p>DMG {tower.damage} • RNG {tower.range} • {tower.fireRate}s</p><div className="branch-guide"><span><b>↙ {tower.branchA}</b><small>{tower.branchADescription}</small></span><span><b>↘ {tower.branchB}</b><small>{tower.branchBDescription}</small></span></div></>}</div>
           </article>
         })}</div>}
         {tab==='enemies'&&<div className="codex-grid enemies">{stoneAgeEnemies.map(enemy=>{
           const traits=traitLabels(enemy);
-          return <article key={enemy.id} className="codex-entry compact"><div className="codex-icon">{enemy.flying?'🦅':enemy.id.includes('mammoth')?'🐘':enemy.id.includes('raptor')||enemy.id.includes('dinosaur')||enemy.id.includes('trex')?'🦖':'🐾'}</div><div className="codex-copy"><small>Tier {enemy.tier}</small><h3>{enemy.name}</h3><p>HP {enemy.hp} • Speed {enemy.speed} • Armor {Math.round((enemy.armor??0)*100)}% • Village DMG {enemy.villageDamage}</p><div className="trait-chips">{traits.length?traits.map(trait=><span key={trait}>{trait}</span>):<span>Basic</span>}</div></div></article>
+          return <article key={enemy.id} className="codex-entry compact"><div className="codex-icon"><AssetSprite kind="enemies" id={enemy.id} fallback={enemyFallback(enemy)} alt={enemy.name}/></div><div className="codex-copy"><small>Tier {enemy.tier}</small><h3>{enemy.name}</h3><p>HP {enemy.hp} • Speed {enemy.speed} • Armor {Math.round((enemy.armor??0)*100)}% • Village DMG {enemy.villageDamage}</p><div className="trait-chips">{traits.length?traits.map(trait=><span key={trait}>{trait}</span>):<span>Basic</span>}</div></div></article>
         })}</div>}
-        {tab==='bosses'&&<div className="codex-grid bosses">{stoneAgeBosses.map(boss=><article key={boss.id} className="codex-entry boss-entry"><div className="codex-icon">👑</div><div className="codex-copy"><small>Map {boss.map} Boss</small><h3>{boss.name}</h3><p>HP {boss.hp.toLocaleString()} • Speed {boss.speed} • Armor {Math.round((boss.armor??0)*100)}%</p><strong>{boss.mechanic}</strong></div></article>)}</div>}
+        {tab==='bosses'&&<div className="codex-grid bosses">{stoneAgeBosses.map(boss=><article key={boss.id} className="codex-entry boss-entry"><div className="codex-icon"><AssetSprite kind="bosses" id={boss.id} fallback="👑" alt={boss.name}/></div><div className="codex-copy"><small>Map {boss.map} Boss</small><h3>{boss.name}</h3><p>HP {boss.hp.toLocaleString()} • Speed {boss.speed} • Armor {Math.round((boss.armor??0)*100)}%</p><strong>{boss.mechanic}</strong></div></article>)}</div>}
       </div>
     </div>
   </div>
