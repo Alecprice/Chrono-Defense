@@ -8,6 +8,8 @@ export function GameSettings({settings,onChange,onClose}){
     <div className="settings-card" onClick={event=>event.stopPropagation()}>
       <header><div><small>CHRONO DEFENSE</small><h2>Game Settings</h2></div><button onClick={onClose}>×</button></header>
       <div className="settings-list">
+        <label><span><b>Sound Effects</b><small>Button, placement, wave and combat feedback.</small></span><input type="checkbox" checked={settings.sound!==false} onChange={event=>update('sound',event.target.checked)}/></label>
+        <label><span><b>Music</b><small>Era-specific background music when audio packs are added.</small></span><input type="checkbox" checked={settings.music!==false} onChange={event=>update('music',event.target.checked)}/></label>
         <label><span><b>Reduced Motion</b><small>Disables most animation and movement effects.</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={event=>update('reducedMotion',event.target.checked)}/></label>
         <label><span><b>Haptics</b><small>Use vibration feedback on supported touch devices.</small></span><input type="checkbox" checked={settings.haptics!==false} onChange={event=>update('haptics',event.target.checked)}/></label>
         <label><span><b>Large UI</b><small>Increase important controls and text size.</small></span><input type="checkbox" checked={Boolean(settings.largeUI)} onChange={event=>update('largeUI',event.target.checked)}/></label>
