@@ -7,53 +7,42 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--chrono-foc
 button:disabled{cursor:not-allowed}
 *{scrollbar-width:thin;scrollbar-color:#ffffff38 transparent}
 *::-webkit-scrollbar{width:7px;height:7px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#ffffff32;border:2px solid transparent;border-radius:99px;background-clip:padding-box}*::-webkit-scrollbar-thumb:hover{background:#ffffff55;background-clip:padding-box}
-
-/* Keep HUDs readable against busy custom art. */
 .top-hud,.retro-battle-hud,.future-battle-hud,.space-battle-hud,.rift-battle-hud{backdrop-filter:blur(10px) saturate(1.12);-webkit-backdrop-filter:blur(10px) saturate(1.12)}
 .board-wrap,.tower-panel,.retro-board-wrap,.retro-build,.future-board-wrap,.future-build,.space-board-wrap,.space-build,.rift-board-wrap,.rift-build{box-shadow:var(--chrono-panel-shadow)}
-
-/* Selection should be unmistakable on mouse and touch. */
 .tower-card.selected,.economy-card.selected,.retro-tower-grid button.selected,.future-towers button.selected,.space-towers button.selected,.rift-towers button.selected{position:relative;filter:brightness(1.12);box-shadow:0 0 0 1px #ffffff25,0 7px 22px #0007}
 .tower-card.selected::after,.retro-tower-grid button.selected::after,.future-towers button.selected::after,.space-towers button.selected::after,.rift-towers button.selected::after{content:'SELECTED';position:absolute;right:5px;top:4px;padding:2px 4px;border-radius:99px;background:#050507c9;color:#fff;font-size:6px;font-weight:1000;letter-spacing:.08em;pointer-events:none}
 .cell.selected-cell,.retro-cell.selected,.future-cell.selected,.space-cell.selected,.rift-cell.selected{box-shadow:inset 0 0 0 2px #ffffff66,0 0 16px #ffffff29!important}
-
-/* Better disabled/affordability language without requiring extra markup. */
 .tower-card:disabled,.retro-tower-grid button:disabled,.future-towers button:disabled,.space-towers button:disabled,.rift-towers button:disabled{filter:saturate(.35);opacity:.46}
 .wave-button:not(:disabled),.retro-start:not(:disabled),.future-start:not(:disabled),.space-start:not(:disabled),.rift-start:not(:disabled){animation:chronoReady 2.2s ease-in-out infinite}
 @keyframes chronoReady{50%{box-shadow:0 0 0 3px #ffffff10,0 0 24px #ffffff25}}
-
-/* Enemy readability and boss hierarchy. */
-.enemy,.retro-enemy,.future-enemy,.space-enemy,.rift-enemy{will-change:transform;transition:filter .12s ease,opacity .12s ease}
+.enemy,.retro-enemy,.future-enemy,.space-enemy,.rift-enemy{will-change:transform;transition:filter .12s ease,opacity .12s ease;animation:enemyAppear .16s ease-out both}
+@keyframes enemyAppear{from{opacity:0;filter:brightness(1.8) drop-shadow(0 0 8px #fff8)}to{opacity:1}}
 .enemy.boss,.retro-enemy.boss,.future-enemy.boss,.space-enemy.boss,.rift-enemy.boss{z-index:12!important;filter:drop-shadow(0 0 9px #fff5) drop-shadow(0 5px 5px #000b)}
 .enemy i,.retro-enemy i,.future-enemy i,.space-enemy i,.rift-enemy i{box-shadow:0 1px 4px #000b}
 .enemy i b,.retro-enemy i b,.future-enemy i b,.space-enemy i b,.rift-enemy i b{min-width:1px}
-
-/* Asset sprites should feel intentional when custom art is present. */
 .has-live-asset>.live-asset-sprite{animation:assetPop .18s ease-out both;image-rendering:auto}
 @keyframes assetPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+.cell.occupied,.retro-cell.occupied,.future-cell.occupied,.space-cell.occupied,.rift-cell.occupied{animation:towerSet .17s ease-out both}
+@keyframes towerSet{from{filter:brightness(1.5);box-shadow:inset 0 0 20px #fff7}to{filter:none}}
 .cell.occupied .live-asset-sprite,.retro-cell.occupied .live-asset-sprite,.future-cell.occupied .live-asset-sprite,.space-cell.occupied .live-asset-sprite,.rift-cell.occupied .live-asset-sprite{max-width:80%;max-height:80%}
-
-/* Messages/results feel more game-like, but remain lightweight. */
 .battle-message,.retro-preview,.future-preview,.space-preview,.rift-preview{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .result-overlay,.retro-result,.future-result,.space-result,.rift-result{animation:chronoFade .16s ease-out both}
 .result-card,.retro-result>div,.future-result>div,.space-result>div,.rift-result>div{animation:chronoResult .24s cubic-bezier(.2,.9,.2,1.05) both}
 @keyframes chronoFade{from{opacity:0}to{opacity:1}}@keyframes chronoResult{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
-
-/* Drag/drop feedback is easier to read over complex maps. */
 .drag-ghost,.universal-drag-ghost{backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 14px 42px #000c,0 0 0 2px #ffffff12}
 body.chrono-dragging .cell:not(.path):not(.occupied),body.chrono-dragging .retro-cell:not(.path):not(.occupied),body.chrono-dragging .future-cell:not(.path):not(.occupied),body.chrono-dragging .space-cell:not(.path):not(.occupied),body.chrono-dragging .rift-cell:not(.path):not(.occupied){filter:brightness(1.12)}
 .chrono-drop-valid{outline:3px solid #78ffad!important;box-shadow:inset 0 0 18px #39ff8860,0 0 16px #39ff8850!important;filter:brightness(1.24)!important}
 .chrono-drop-invalid{outline:3px solid #ff7a7a!important;box-shadow:inset 0 0 18px #ff343450,0 0 13px #ff34343d!important;filter:saturate(.45) brightness(.8)!important}
-
-/* Keep compact landscape UI comfortable around notches/home indicators. */
+@media(hover:hover) and (pointer:fine){
+ .tower-card:not(:disabled):hover,.economy-card:not(:disabled):hover,.retro-tower-grid button:not(:disabled):hover,.future-towers button:not(:disabled):hover,.space-towers button:not(:disabled):hover,.rift-towers button:not(:disabled):hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 9px 20px #0007}
+ .cell:not(.path):not(.occupied):hover,.retro-cell:not(.path):not(.occupied):hover,.future-cell:not(.path):not(.occupied):hover,.space-cell:not(.path):not(.occupied):hover,.rift-cell:not(.path):not(.occupied):hover{filter:brightness(1.14);box-shadow:inset 0 0 0 1px #ffffff44}
+}
 @media(max-width:900px) and (orientation:landscape){
  .fullscreen-shell{padding-top:max(4px,env(safe-area-inset-top));padding-right:max(4px,env(safe-area-inset-right));padding-bottom:max(4px,env(safe-area-inset-bottom));padding-left:max(4px,env(safe-area-inset-left))}
  button{min-width:28px}
  .tower-card.selected::after,.retro-tower-grid button.selected::after,.future-towers button.selected::after,.space-towers button.selected::after,.rift-towers button.selected::after{font-size:5px;right:3px;top:2px}
  .result-card,.retro-result>div,.future-result>div,.space-result>div,.rift-result>div{max-height:88dvh;overflow:auto}
 }
-
-/* Accessibility/performance modes win over decorative polish. */
 .chrono-reduced-motion *,.effects-low *{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
 .effects-low .top-hud,.effects-low .retro-battle-hud,.effects-low .future-battle-hud,.effects-low .space-battle-hud,.effects-low .rift-battle-hud,.effects-low .battle-message,.effects-low .retro-preview,.effects-low .future-preview,.effects-low .space-preview,.effects-low .rift-preview{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .chrono-high-contrast button:focus-visible{outline-color:#fff!important;outline-width:4px!important}
