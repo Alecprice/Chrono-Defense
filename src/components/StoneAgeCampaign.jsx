@@ -12,7 +12,7 @@ import { DailyChallengeCard } from './DailyChallengeCard.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
-export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex, onSettings, onStats, onSaveTools, onDaily }) {
+export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex, onSettings, onStats, onSaveTools, onDaily, onSwitchWorld }) {
   const stone=save.worlds['stone-age'];
   const map=stoneAgeMaps[selectedMap-1];
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
@@ -23,6 +23,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
   const nextTower=nextUnlock?stoneAgeTowers.find(tower=>tower.id===nextUnlock.id):null;
   const completed=Math.max(0,stone.completedMap??0);
   const progress=Math.round(completed/25*100);
+  const retroUnlocked=Boolean(save.worlds.retro?.unlocked);
 
   return <section className="campaign-screen">
     <header className="campaign-header">
@@ -41,7 +42,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
 
     <div className="era-road" aria-label="Chrono Defense eras">
       <div className="era active"><b>🪨 Stone Age</b><small>{progress}% complete</small></div>
-      <div className={`era ${save.worlds.retro?.unlocked?'available':'locked'}`}><b>🕹️ Retro</b><small>{save.worlds.retro?.unlocked?'Unlocked':'Locked'}</small></div>
+      <button className={`era era-button ${retroUnlocked?'available':'locked'}`} disabled={!retroUnlocked} onClick={()=>onSwitchWorld?.('retro')}><b>🕹️ Retro</b><small>{retroUnlocked?'PLAY ERA II →':'Locked'}</small></button>
       <div className="era locked"><b>🤖 Future</b><small>Locked</small></div>
       <div className="era locked"><b>🚀 Space</b><small>Locked</small></div>
       <div className="era locked secret"><b>🌀 ???</b><small>Unknown</small></div>
@@ -71,6 +72,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         <div className="milestone-strip"><div><small>CHRONICLE MILESTONES</small><b>{milestones.unlocked.length}/{milestones.total}</b></div><span>{milestones.next?`${milestones.next.icon} Next: ${milestones.next.label}`:'🏆 All Stone Age milestones complete'}</span></div>
 
         {nextTower&&<div className="next-unlock-card"><span>{nextTower.icon}</span><div><small>NEXT TOWER UNLOCK</small><b>{nextTower.name}</b><p>{nextUnlock.label}</p></div></div>}
+        {retroUnlocked&&<button className="era-unlocked-card" onClick={()=>onSwitchWorld?.('retro')}><span>🕹️</span><div><small>ERA II UNLOCKED</small><b>Retro Tower Defense</b><p>The timeline has advanced. Enter the arcade era.</p></div><strong>PLAY →</strong></button>}
 
         <div className="selected-map-card">
           <div className="selected-map-art">{map.icon}{map.boss?'👑':''}</div>
