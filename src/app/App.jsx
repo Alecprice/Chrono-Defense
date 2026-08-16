@@ -4,6 +4,7 @@ import { ChronoRouter } from '../components/ChronoRouter.jsx';
 import { AppStatus } from '../components/AppStatus.jsx';
 import { GameAudioBridge } from '../components/GameAudioBridge.jsx';
 import { SettingsBridge } from '../components/SettingsBridge.jsx';
+import { DragPlacementBridge } from '../components/DragPlacementBridge.jsx';
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
       <AppStatus />
       <GameAudioBridge />
       <SettingsBridge />
+      <DragPlacementBridge />
     </FullscreenShell>
   );
 }
