@@ -11,6 +11,7 @@ export function StoneAgeExperience() {
   const [screen,setScreen]=useState('campaign');
   const [selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,stone.highestMap??1)));
   const [selectedMode,setSelectedMode]=useState('normal');
+  const [battleKey,setBattleKey]=useState(0);
   const [showAchievements,setShowAchievements]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
 
@@ -31,11 +32,7 @@ export function StoneAgeExperience() {
       return {...prev,worlds:{...prev.worlds,'stone-age':{...old,achievements:[...new Set(ids)]}}};
     });
     setAchievementToast(fresh[0]);
-  },[
-    stone.stats?.kills,stone.stats?.wavesCleared,stone.stats?.mapsCompleted,stone.stats?.bossesDefeated,
-    stone.stats?.flawlessMaps,stone.stats?.structuresBuilt,stone.stats?.upgrades,stone.stats?.resourcesCollected,
-    stone.completedMap,stone.totems,stone.mastery
-  ]);
+  },[stone.stats,stone.completedMap,stone.totems,stone.mastery]);
 
   useEffect(()=>{
     if(!achievementToast)return;
@@ -45,11 +42,10 @@ export function StoneAgeExperience() {
 
   const unlockedSet=useMemo(()=>new Set(stone.achievements??[]),[stone.achievements]);
 
-  const enterBattle=()=>setScreen('battle');
-  const exitBattle=()=>{
-    setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));
-    setScreen('campaign');
-  };
+  const enterBattle=()=>{setBattleKey(key=>key+1);setScreen('battle')};
+  const exitBattle=()=>setScreen('campaign');
+  const replayBattle=()=>setBattleKey(key=>key+1);
+  const nextMap=next=>{setSelectedMap(next);setBattleKey(key=>key+1);setScreen('battle')};
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -61,12 +57,14 @@ export function StoneAgeExperience() {
       onStart={enterBattle}
       onAchievements={()=>setShowAchievements(true)}
     /> : <StoneAgeBattle
+      key={`${selectedMap}:${selectedMode}:${battleKey}`}
       mapNumber={selectedMap}
       modeId={selectedMode}
       save={save}
       setSave={setSave}
       onExit={exitBattle}
-      onNextMap={(next)=>{setSelectedMap(next);setScreen('battle')}}
+      onReplay={replayBattle}
+      onNextMap={nextMap}
     />}
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
