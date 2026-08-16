@@ -1,0 +1,2 @@
+import React from'react';
+export function ObjectiveChecklist({labels=[],record=null,icon='★'}){const saved=Array.isArray(record?.objectives)?record.objectives:[];return <div className="saved-objective-list">{labels.map((label,index)=>{const state=saved[index]?.met;return <span key={`${index}-${label}`} className={state===true?'met':state===false?'missed':''}><i>{state===true?'✓':state===false?'○':icon}</i><b>{label}</b></span>})}</div>}
