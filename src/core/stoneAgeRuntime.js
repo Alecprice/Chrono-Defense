@@ -7,11 +7,20 @@ export function nearby(enemies,target,count=3,radius=150){
 
 function uniqueTargets(targets){return [...new Map(targets.filter(Boolean).map(enemy=>[enemy.uid,enemy])).values()]}
 
+function criticalChance(base,item){
+  if(base.id==='watchtower'&&item.branch==='A')return .22;
+  if(base.id==='spear-hunter'&&item.branch==='A')return .14;
+  if(base.id==='tribal-warrior'&&item.branch==='A')return .12;
+  return .06;
+}
+
 export function applyStoneAgeAttack({base,item,stats,target,enemies}){
   const armor=Math.max(0,(target.armor??0)-(target.armorDebuff??0));
   let damage=effectiveDamage(stats.damage,{...target,armor});
   let targets=[target];
   let villageHeal=0;
+  const critical=Math.random()<criticalChance(base,item);
+  if(critical)damage=Math.round(damage*1.75);
 
   if(base.id==='rock-thrower'&&item.branch==='A'){
     target.armorDebuff=Math.max(target.armorDebuff??0,.18);target.armorBreakTime=3.5;target.stunTime=Math.max(target.stunTime??0,.25);
@@ -39,7 +48,7 @@ export function applyStoneAgeAttack({base,item,stats,target,enemies}){
 
   if(base.id==='shaman'&&item.branch==='A'){targets=[target,...nearby(enemies,target,3,125)];damage=Math.round(damage*.85)}
 
-  if(base.id==='watchtower'&&item.branch==='A')damage=Math.round(stats.damage*1.12);
+  if(base.id==='watchtower'&&item.branch==='A')damage=Math.round(damage*1.12);
   if(base.id==='watchtower'&&item.branch==='B'){targets=[target,...nearby(enemies,target,4,210)];damage=Math.round(damage*.70)}
 
   if(base.id==='mammoth-rider'&&item.branch==='A')targets=[target,...nearby(enemies,target,6,120)];
@@ -64,7 +73,7 @@ export function applyStoneAgeAttack({base,item,stats,target,enemies}){
     }
     if(enemy.hp<=0)enemy.dead=true;
   });
-  return {hits,damage,villageHeal};
+  return {hits,damage,villageHeal,critical};
 }
 
 export function shieldWallMultiplier(placed={}){
