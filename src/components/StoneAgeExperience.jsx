@@ -10,7 +10,7 @@ import { GameSettings } from './GameSettings.jsx';
 import { StoneAgeStats } from './StoneAgeStats.jsx';
 import { SaveManager } from './SaveManager.jsx';
 
-export function StoneAgeExperience() {
+export function StoneAgeExperience({onSwitchWorld}) {
   const [save,setSave]=useState(()=>loadSave());
   const stone=save.worlds['stone-age'];
   const [screen,setScreen]=useState('campaign');
@@ -40,10 +40,7 @@ export function StoneAgeExperience() {
 
   useEffect(()=>{
     if(save.settings?.haptics===false||typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return undefined;
-    const pulse=event=>{
-      const button=event.target?.closest?.('button');
-      if(button&&!button.disabled)navigator.vibrate(8);
-    };
+    const pulse=event=>{const button=event.target?.closest?.('button');if(button&&!button.disabled)navigator.vibrate(8);};
     document.addEventListener('pointerup',pulse,{passive:true});
     return()=>document.removeEventListener('pointerup',pulse);
   },[save.settings?.haptics]);
@@ -69,11 +66,7 @@ export function StoneAgeExperience() {
     stone.completedMap,stone.totems,stone.mastery
   ]);
 
-  useEffect(()=>{
-    if(!achievementToast)return;
-    const timer=setTimeout(()=>setAchievementToast(null),4200);
-    return()=>clearTimeout(timer);
-  },[achievementToast]);
+  useEffect(()=>{if(!achievementToast)return;const timer=setTimeout(()=>setAchievementToast(null),4200);return()=>clearTimeout(timer)},[achievementToast]);
 
   const unlockedSet=useMemo(()=>new Set(stone.achievements??[]),[stone.achievements]);
   const enterBattle=()=>{setBattleKey(value=>value+1);setScreen('battle')};
@@ -98,6 +91,7 @@ export function StoneAgeExperience() {
       onStats={()=>setShowStats(true)}
       onSaveTools={()=>setShowSaveTools(true)}
       onDaily={launchDaily}
+      onSwitchWorld={onSwitchWorld}
     /> : <StoneAgeBattleV3
       key={`${selectedMap}-${selectedMode}-${battleKey}`}
       mapNumber={selectedMap}
@@ -126,5 +120,5 @@ export function StoneAgeExperience() {
     {showSaveTools&&<SaveManager save={save} onReplace={replaceSave} onClose={()=>setShowSaveTools(false)}/>} 
 
     {achievementToast&&<div className="achievement-toast"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
-  </>
+  </>;
 }
