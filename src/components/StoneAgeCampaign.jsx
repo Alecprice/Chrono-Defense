@@ -5,17 +5,20 @@ import { stoneAgeTowers } from '../data/worlds/stoneAge/towers.js';
 import { getStoneAgeLayout } from '../data/worlds/stoneAge/layouts.js';
 import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
 import { nextTowerUnlock } from '../core/unlocks.js';
+import { milestoneProgress } from '../data/worlds/stoneAge/milestones.js';
 import { StoneAgeVillage } from './StoneAgeVillage.jsx';
+import { DailyChallengeCard } from './DailyChallengeCard.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
-export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex, onSettings }) {
+export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex, onSettings, onStats, onSaveTools, onDaily }) {
   const stone=save.worlds['stone-age'];
   const map=stoneAgeMaps[selectedMap-1];
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
   const environment=useMemo(()=>getStoneAgeEnvironment(map,getStoneAgeLayout(selectedMap)),[map,selectedMap]);
   const unlockedModeIds=useMemo(()=>new Set(stoneAgeModes.filter(item=>item.unlock(stone)).map(item=>item.id)),[stone]);
   const nextUnlock=useMemo(()=>nextTowerUnlock({completedMap:stone.completedMap,totems:stone.totems}),[stone.completedMap,stone.totems]);
+  const milestones=useMemo(()=>milestoneProgress(stone),[stone]);
   const nextTower=nextUnlock?stoneAgeTowers.find(tower=>tower.id===nextUnlock.id):null;
   const completed=Math.max(0,stone.completedMap??0);
   const progress=Math.round(completed/25*100);
@@ -27,9 +30,11 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         <span><b>🗿 {stone.totems}/75</b><small>Totems</small></span>
         <span><b>🔥 {stone.mastery}/100</b><small>Mastery</small></span>
         <span><b>🏆 {(stone.achievements??[]).length}/100</b><small>Achievements</small></span>
+        <button onClick={onStats}>Tribal Record</button>
         <button onClick={onCodex}>Field Guide</button>
         <button onClick={onAchievements}>Achievements</button>
-        <button onClick={onSettings}>⚙ Settings</button>
+        <button onClick={onSaveTools}>Save</button>
+        <button onClick={onSettings}>⚙</button>
       </div>
     </header>
 
@@ -43,6 +48,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
 
     <main className="campaign-main">
       <div className="map-panel">
+        <DailyChallengeCard stoneSave={stone} onLaunch={onDaily}/>
         <div className="section-title"><div><b>Stone Age Campaign</b><small>25 maps • 5 regions • 5 bosses</small></div><span>{completed}/25 cleared</span></div>
         <div className="region-strip">{regions.map((region,index)=><span key={region} className={map.region===region?'active':''}>{index===0?'🌿':index===1?'🌴':index===2?'❄️':index===3?'🌋':'🦖'} {region}</span>)}</div>
         <div className="map-grid">{stoneAgeMaps.map(item=>{
@@ -59,6 +65,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
 
       <aside className="campaign-side">
         <StoneAgeVillage completedMap={completed}/>
+
+        <div className="milestone-strip"><div><small>CHRONICLE MILESTONES</small><b>{milestones.unlocked.length}/{milestones.total}</b></div><span>{milestones.next?`${milestones.next.icon} Next: ${milestones.next.label}`:'🏆 All Stone Age milestones complete'}</span></div>
 
         {nextTower&&<div className="next-unlock-card"><span>{nextTower.icon}</span><div><small>NEXT TOWER UNLOCK</small><b>{nextTower.name}</b><p>{nextUnlock.label}</p></div></div>}
 
