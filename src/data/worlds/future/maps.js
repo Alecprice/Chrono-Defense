@@ -1,0 +1,9 @@
+const names=[
+['Grid Online','Learn Credits and reactor power.'],['Data Causeway','Long power lanes reward relay planning.'],['Neon Circuit','Fast enemies test efficient grid use.'],['Shield District','Shielded units enter the battle.'],['System Breach','First Future boss arena.'],
+['Drone Sector','Airborne support swarms fill the route.'],['Dark Network','Cloaked enemies demand detection.'],['Power Crisis','Low starting grid capacity.'],['Firewall City','Hackers and shield units combine.'],['Black Hat Protocol','Second boss arena.'],
+['Industrial Core','Heavy mechs dominate narrow lanes.'],['EMP Junction','Power disruption becomes a core threat.'],['Nanite Works','Regenerating swarms punish weak focus fire.'],['Quantum Highway','Phase units cross the map rapidly.'],['Colossus Foundry','Third boss arena.'],
+['AI District','Adaptive enemy mixes pressure every defense type.'],['Zero Day','Hackers arrive in coordinated groups.'],['Reactor Row','Huge power potential with limited build space.'],['War Machine Yard','Armored siege formations attack the core.'],['Rogue Network','Fourth boss arena.'],
+['Singularity Edge','Advanced units bend normal targeting rules.'],['Last Firewall','Elite shields and stealth overlap.'],['Core Collapse','Power capacity fluctuates between waves.'],['Omega Gate','Maximum-tier enemies arrive immediately.'],['The Singularity','Future final boss arena.']
+];
+const sectors=[['Grid District','🔷'],['Cyber City','🌐'],['Machine Core','⚙️'],['AI Dominion','🧠'],['Singularity Zone','🌀']];
+export const futureMaps=names.map(([name,mechanic],i)=>{const number=i+1,[sector,icon]=sectors[Math.floor(i/5)];return{id:`future-${String(number).padStart(2,'0')}`,number,name,sector,icon,mechanic,boss:number%5===0,dataCores:['Complete the map','Keep Core Integrity above 75%',number%3?'Finish with positive spare Power':'Build at least one Reactor']};});
