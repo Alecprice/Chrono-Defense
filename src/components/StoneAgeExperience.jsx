@@ -5,6 +5,7 @@ import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
 import { StoneAgeBattleV3 } from './StoneAgeBattleV3.jsx';
 import { StoneAgeCodex } from './StoneAgeCodex.jsx';
+import { GameSettings } from './GameSettings.jsx';
 
 export function StoneAgeExperience() {
   const [save,setSave]=useState(()=>loadSave());
@@ -15,9 +16,22 @@ export function StoneAgeExperience() {
   const [battleKey,setBattleKey]=useState(0);
   const [showAchievements,setShowAchievements]=useState(false);
   const [showCodex,setShowCodex]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
 
   useEffect(()=>persistSave(save),[save]);
+
+  useEffect(()=>{
+    const root=document.documentElement;
+    root.classList.toggle('chrono-reduced-motion',Boolean(save.settings?.reducedMotion));
+    root.classList.toggle('chrono-large-ui',Boolean(save.settings?.largeUI));
+    root.classList.toggle('chrono-high-contrast',Boolean(save.settings?.highContrast));
+    root.dataset.effects=save.settings?.effects??'high';
+    return()=>{
+      root.classList.remove('chrono-reduced-motion','chrono-large-ui','chrono-high-contrast');
+      delete root.dataset.effects;
+    };
+  },[save.settings]);
 
   useEffect(()=>{
     const mode=stoneAgeModes.find(item=>item.id===selectedMode);
@@ -50,6 +64,7 @@ export function StoneAgeExperience() {
   const enterBattle=()=>{setBattleKey(value=>value+1);setScreen('battle')};
   const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
+  const updateSettings=settings=>setSave(prev=>({...prev,settings}));
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -61,6 +76,7 @@ export function StoneAgeExperience() {
       onStart={enterBattle}
       onAchievements={()=>setShowAchievements(true)}
       onCodex={()=>setShowCodex(true)}
+      onSettings={()=>setShowSettings(true)}
     /> : <StoneAgeBattleV3
       key={`${selectedMap}-${selectedMode}-${battleKey}`}
       mapNumber={selectedMap}
@@ -82,6 +98,7 @@ export function StoneAgeExperience() {
     </div>}
 
     {showCodex&&<StoneAgeCodex stoneSave={stone} onClose={()=>setShowCodex(false)}/>} 
+    {showSettings&&<GameSettings settings={save.settings??{}} onChange={updateSettings} onClose={()=>setShowSettings(false)}/>} 
 
     {achievementToast&&<div className="achievement-toast"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
   </>
