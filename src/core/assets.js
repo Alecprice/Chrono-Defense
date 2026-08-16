@@ -1,6 +1,6 @@
 export const ASSET_ROOT = '/assets';
 
-function emptyPack(){return{towers:{},enemies:{},bosses:{},projectiles:{},effects:{},environment:{},ui:{},maps:{}};}
+function emptyPack(){return{towers:{},structures:{},enemies:{},bosses:{},projectiles:{},effects:{},environment:{},ui:{},maps:{}};}
 const customAssets={
   'stone-age':emptyPack(),
   retro:emptyPack(),
