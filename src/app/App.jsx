@@ -1,11 +1,11 @@
 import React from 'react';
 import { FullscreenShell } from '../components/FullscreenShell.jsx';
-import { StoneAgeGame } from '../components/StoneAgeGame.jsx';
+import { StoneAgeExperience } from '../components/StoneAgeExperience.jsx';
 
 export function App() {
   return (
     <FullscreenShell>
-      <StoneAgeGame />
+      <StoneAgeExperience />
     </FullscreenShell>
   );
 }
