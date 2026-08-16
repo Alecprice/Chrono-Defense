@@ -19,6 +19,7 @@ import './styles/rift-meta.css';
 import './styles/era-switcher.css';
 import './styles/world-meta.css';
 import './styles/profile.css';
+import './styles/performance.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
