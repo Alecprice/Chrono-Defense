@@ -4,6 +4,7 @@ import { stoneAgeAchievements, newlyUnlockedAchievements } from '../data/worlds/
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
 import { StoneAgeBattle } from './StoneAgeBattle.jsx';
+import { StoneAgeCodex } from './StoneAgeCodex.jsx';
 
 export function StoneAgeExperience() {
   const [save,setSave]=useState(()=>loadSave());
@@ -11,8 +12,8 @@ export function StoneAgeExperience() {
   const [screen,setScreen]=useState('campaign');
   const [selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,stone.highestMap??1)));
   const [selectedMode,setSelectedMode]=useState('normal');
-  const [battleKey,setBattleKey]=useState(0);
   const [showAchievements,setShowAchievements]=useState(false);
+  const [showCodex,setShowCodex]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
 
   useEffect(()=>persistSave(save),[save]);
@@ -32,7 +33,11 @@ export function StoneAgeExperience() {
       return {...prev,worlds:{...prev.worlds,'stone-age':{...old,achievements:[...new Set(ids)]}}};
     });
     setAchievementToast(fresh[0]);
-  },[stone.stats,stone.completedMap,stone.totems,stone.mastery]);
+  },[
+    stone.stats?.kills,stone.stats?.wavesCleared,stone.stats?.mapsCompleted,stone.stats?.bossesDefeated,
+    stone.stats?.flawlessMaps,stone.stats?.structuresBuilt,stone.stats?.upgrades,stone.stats?.resourcesCollected,
+    stone.completedMap,stone.totems,stone.mastery
+  ]);
 
   useEffect(()=>{
     if(!achievementToast)return;
@@ -42,10 +47,11 @@ export function StoneAgeExperience() {
 
   const unlockedSet=useMemo(()=>new Set(stone.achievements??[]),[stone.achievements]);
 
-  const enterBattle=()=>{setBattleKey(key=>key+1);setScreen('battle')};
-  const exitBattle=()=>setScreen('campaign');
-  const replayBattle=()=>setBattleKey(key=>key+1);
-  const nextMap=next=>{setSelectedMap(next);setBattleKey(key=>key+1);setScreen('battle')};
+  const enterBattle=()=>setScreen('battle');
+  const exitBattle=()=>{
+    setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));
+    setScreen('campaign');
+  };
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -56,15 +62,14 @@ export function StoneAgeExperience() {
       setSelectedMode={setSelectedMode}
       onStart={enterBattle}
       onAchievements={()=>setShowAchievements(true)}
+      onCodex={()=>setShowCodex(true)}
     /> : <StoneAgeBattle
-      key={`${selectedMap}:${selectedMode}:${battleKey}`}
       mapNumber={selectedMap}
       modeId={selectedMode}
       save={save}
       setSave={setSave}
       onExit={exitBattle}
-      onReplay={replayBattle}
-      onNextMap={nextMap}
+      onNextMap={(next)=>{setSelectedMap(next);setScreen('battle')}}
     />}
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
@@ -76,6 +81,8 @@ export function StoneAgeExperience() {
         })}</div>
       </div>
     </div>}
+
+    {showCodex&&<StoneAgeCodex stoneSave={stone} onClose={()=>setShowCodex(false)}/>} 
 
     {achievementToast&&<div className="achievement-toast"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
   </>
