@@ -43,8 +43,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
           const best=stone.best?.[item.id]?.totems??0;
           return <button key={item.id} disabled={locked} className={`map-card ${selectedMap===item.number?'selected':''} ${item.boss?'boss-map':''}`} onClick={()=>setSelectedMap(item.number)}>
             <span className="map-number">{locked?'🔒':item.number}</span>
-            <b>{item.icon} {item.mechanic}</b>
-            <small>{item.region}</small>
+            <b>{item.icon} {item.name}</b>
+            <small>{item.mechanic}</small>
             <em>{item.boss?'👑 Boss ':''}{best?`🗿`.repeat(best):'○○○'}</em>
           </button>
         })}</div>
@@ -58,6 +58,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
             <div><b>{environment.icon} {environment.name}</b><small>{environment.summary}</small></div>
             <div className="hazard-chips">{environment.hazards.map(hazard=><span key={hazard}>{hazard}</span>)}</div>
           </div>
+          <div className="bonus-challenge">⚔️ <b>Bonus challenge:</b> {map.bonusObjective}</div>
           <div className="totem-objectives">{map.totems.map((objective,index)=><span key={objective}>🗿 <b>{index+1}</b> {objective}</span>)}</div>
         </div>
 
