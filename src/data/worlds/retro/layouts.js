@@ -6,9 +6,6 @@ const patterns=[
  [6,7,8,20,32,44,56,55,54,42,30,18,19,20,21,22,34,46,47,35,23,11]
 ];
 const bonusSets=[[1,13,25,37],[4,16,28,40],[10,22,34,46],[2,26,50],[15,39,52]];
-export function getRetroLayout(mapNumber=1){
- const zone=Math.max(0,Math.min(4,Math.floor((mapNumber-1)/5)));const variant=(mapNumber-1)%5;
- const path=patterns[(zone+variant)%patterns.length];
- return{path:[...path],bonusPads:bonusSets[(zone*2+variant)%bonusSets.length].filter(cell=>!path.includes(cell))};
-}
-export function retroCellCenter(cell){const col=cell%12,row=Math.floor(cell/12);return{x:(col+.5)*100,y:(row+.5)*100};}
+function h(cell){const r=Math.floor(cell/12),c=cell%12;return r*12+(11-c)}function v(cell){const r=Math.floor(cell/12),c=cell%12;return(4-r)*12+c}function tx(cells,mode){let out=[...cells];if(mode&1)out=out.map(h);if(mode&2)out=out.map(v);if(mode&4)out.reverse();return out}
+export function getRetroLayout(mapNumber=1){const n=Math.max(1,Math.min(25,mapNumber)),zone=Math.floor((n-1)/5),variant=(n-1)%5,base=patterns[(zone+variant)%patterns.length],mode=(n*3+zone*5+variant)%8,path=tx(base,mode),used=new Set(path),bonusPads=tx(bonusSets[(zone*2+variant)%bonusSets.length],mode).filter(cell=>!used.has(cell));return{path,bonusPads,layoutId:`retro-layout-${n}`}}
+export function retroCellCenter(cell){const col=cell%12,row=Math.floor(cell/12);return{x:(col+.5)*100,y:(row+.5)*100}}
