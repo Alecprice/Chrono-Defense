@@ -10,6 +10,7 @@ import { BattleIntelBridge } from '../components/BattleIntelBridge.jsx';
 import { KeyboardControls } from '../components/KeyboardControls.jsx';
 import { DailyMissionBridge } from '../components/DailyMissionBridge.jsx';
 import { BossEntranceBridge } from '../components/BossEntranceBridge.jsx';
+import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
 
 export function App() {
   return (
@@ -24,6 +25,7 @@ export function App() {
       <KeyboardControls />
       <DailyMissionBridge />
       <BossEntranceBridge />
+      <BaseImpactBridge />
     </FullscreenShell>
   );
 }
