@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { loadSave, persistSave } from '../core/save.js';
+import { objectiveAwareBattleSetter } from '../core/eraStats.js';
 import { stoneAgeAchievements, newlyUnlockedAchievements } from '../data/worlds/stoneAge/achievements.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
@@ -23,6 +24,8 @@ export function StoneAgeExperience({onSwitchWorld}) {
   const [showStats,setShowStats]=useState(false);
   const [showSaveTools,setShowSaveTools]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
+  const objectiveSetSave=useMemo(()=>objectiveAwareBattleSetter(setSave,{worldId:'stone-age',mapNumber:selectedMap}),[selectedMap]);
+  const battleSetSave=selectedMode==='normal'?objectiveSetSave:setSave;
 
   useEffect(()=>persistSave(save),[save]);
 
@@ -97,7 +100,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
       mapNumber={selectedMap}
       modeId={selectedMode}
       save={save}
-      setSave={setSave}
+      setSave={battleSetSave}
       onExit={exitBattle}
       onNextMap={nextMap}
     />}
