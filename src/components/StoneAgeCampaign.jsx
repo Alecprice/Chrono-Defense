@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { stoneAgeMaps } from '../data/worlds/stoneAge/maps.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
+import { stoneAgeTowers } from '../data/worlds/stoneAge/towers.js';
 import { getStoneAgeLayout } from '../data/worlds/stoneAge/layouts.js';
 import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
+import { nextTowerUnlock } from '../core/unlocks.js';
 import { StoneAgeVillage } from './StoneAgeVillage.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
@@ -13,6 +15,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
   const environment=useMemo(()=>getStoneAgeEnvironment(map,getStoneAgeLayout(selectedMap)),[map,selectedMap]);
   const unlockedModeIds=useMemo(()=>new Set(stoneAgeModes.filter(item=>item.unlock(stone)).map(item=>item.id)),[stone]);
+  const nextUnlock=useMemo(()=>nextTowerUnlock({completedMap:stone.completedMap,totems:stone.totems}),[stone.completedMap,stone.totems]);
+  const nextTower=nextUnlock?stoneAgeTowers.find(tower=>tower.id===nextUnlock.id):null;
   const completed=Math.max(0,stone.completedMap??0);
   const progress=Math.round(completed/25*100);
 
@@ -55,6 +59,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
 
       <aside className="campaign-side">
         <StoneAgeVillage completedMap={completed}/>
+
+        {nextTower&&<div className="next-unlock-card"><span>{nextTower.icon}</span><div><small>NEXT TOWER UNLOCK</small><b>{nextTower.name}</b><p>{nextUnlock.label}</p></div></div>}
 
         <div className="selected-map-card">
           <div className="selected-map-art">{map.icon}{map.boss?'👑':''}</div>
