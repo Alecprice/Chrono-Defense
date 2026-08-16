@@ -1,6 +1,7 @@
 import { retroEnemies } from './enemies.js';
 import { retroBosses } from './bosses.js';
 import { applyRetroMapModifiers } from './mapModifiers.js';
+import { applyChallengeToUnits } from '../../../core/eraChallenges.js';
 
 const byId=Object.fromEntries(retroEnemies.map(enemy=>[enemy.id,enemy]));
 const pools=[
@@ -20,7 +21,7 @@ export function buildRetroWave({mapNumber=1,waveNumber=1}){
  if(zone>=3&&waveNumber>=8)units.push(scale(byId['game-breaker'],mapNumber,waveNumber));
  if(mapNumber===19&&waveNumber>=5&&waveNumber<10)units.push(scale(byId['arcade-tank']??pool[0],mapNumber,waveNumber));
  if(waveNumber===10&&mapNumber%5===0){const boss=retroBosses.find(item=>item.map===mapNumber);if(boss){const scaledHp=Math.round(boss.hp*(1+(mapNumber-1)*.035));units.push({...boss,hp:scaledHp,maxHp:scaledHp,boss:true,coinReward:350+mapNumber*12});}}
- return applyRetroMapModifiers(units,mapNumber,waveNumber);
+ return applyChallengeToUnits('retro',applyRetroMapModifiers(units,mapNumber,waveNumber));
 }
 export function summarizeRetroWave(units=[]){const map=new Map();units.forEach(unit=>{const key=unit.boss?`👑 ${unit.name}`:unit.name;map.set(key,(map.get(key)??0)+1)});return[...map.entries()].map(([name,count])=>({name,count}));}
 export const RETRO_WAVES=10;
