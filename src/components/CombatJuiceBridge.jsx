@@ -13,16 +13,17 @@ function defeatBurst(rect,boss=false){if(document.documentElement.classList.cont
 
 export function CombatJuiceBridge(){
  useEffect(()=>{
-  const previous=new WeakMap(),lastRect=new WeakMap();
-  const seed=()=>document.querySelectorAll(`${ENEMY} i b`).forEach(bar=>{const value=pct(bar);if(value!=null)previous.set(bar,value);const enemy=bar.closest(ENEMY);if(enemy)lastRect.set(enemy,enemy.getBoundingClientRect())});seed();
+  const previous=new WeakMap(),lastRect=new WeakMap(),lastHealth=new WeakMap();
+  const remember=(enemy,bar)=>{const value=pct(bar);if(value!=null){previous.set(bar,value);lastHealth.set(enemy,value)}lastRect.set(enemy,enemy.getBoundingClientRect())};
+  const seed=()=>document.querySelectorAll(`${ENEMY} i b`).forEach(bar=>{const enemy=bar.closest(ENEMY);if(enemy)remember(enemy,bar)});seed();
   const observer=new MutationObserver(records=>{
    for(const record of records){
     if(record.type==='attributes'&&record.target.matches?.(`${ENEMY} i b`)){
-      const bar=record.target,enemy=bar.closest(ENEMY);if(!enemy)continue;const next=pct(bar),old=previous.get(bar);if(next==null){continue}previous.set(bar,next);const rect=enemy.getBoundingClientRect();lastRect.set(enemy,rect);if(old==null||next>=old-.2)continue;const amount=old-next,boss=enemy.classList.contains('boss'),source=nearestTower(rect),to=center(rect);if(source)tracer(source.point,to,boss);floatDamage(rect,amount,boss);impact(enemy,boss);
+      const bar=record.target,enemy=bar.closest(ENEMY);if(!enemy)continue;const next=pct(bar),old=previous.get(bar);if(next==null)continue;previous.set(bar,next);lastHealth.set(enemy,next);const rect=enemy.getBoundingClientRect();lastRect.set(enemy,rect);if(old==null||next>=old-.2)continue;const amount=old-next,boss=enemy.classList.contains('boss'),source=nearestTower(rect),to=center(rect);if(source)tracer(source.point,to,boss);floatDamage(rect,amount,boss);impact(enemy,boss);
     }
     if(record.type==='childList'){
-      record.addedNodes.forEach(node=>{if(!(node instanceof Element))return;const enemies=node.matches?.(ENEMY)?[node]:[...node.querySelectorAll?.(ENEMY)??[]];enemies.forEach(enemy=>{lastRect.set(enemy,enemy.getBoundingClientRect());enemy.querySelectorAll('i b').forEach(bar=>{const value=pct(bar);if(value!=null)previous.set(bar,value)})})});
-      record.removedNodes.forEach(node=>{if(!(node instanceof Element))return;const enemies=node.matches?.(ENEMY)?[node]:[...node.querySelectorAll?.(ENEMY)??[]];enemies.forEach(enemy=>{const rect=lastRect.get(enemy);if(rect?.width)defeatBurst(rect,enemy.classList.contains('boss'))})});
+      record.addedNodes.forEach(node=>{if(!(node instanceof Element))return;const enemies=node.matches?.(ENEMY)?[node]:[...node.querySelectorAll?.(ENEMY)??[]];enemies.forEach(enemy=>{const bar=enemy.querySelector('i b');if(bar)remember(enemy,bar);else lastRect.set(enemy,enemy.getBoundingClientRect())})});
+      record.removedNodes.forEach(node=>{if(!(node instanceof Element))return;const enemies=node.matches?.(ENEMY)?[node]:[...node.querySelectorAll?.(ENEMY)??[]];enemies.forEach(enemy=>{const rect=lastRect.get(enemy),health=lastHealth.get(enemy);if(rect?.width&&health!=null&&health<=1.2)defeatBurst(rect,enemy.classList.contains('boss'))})});
     }
    }
   });
