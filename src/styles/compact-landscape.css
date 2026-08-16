@@ -1,0 +1,23 @@
+@media (orientation:landscape) and (max-height:430px){
+ .fullscreen-shell{padding:2px!important}.game-frame{gap:3px!important}
+ .top-hud,.retro-battle-hud,.future-battle-hud,.space-battle-hud,.rift-battle-hud{height:42px!important;min-height:42px!important;padding:3px 5px!important;gap:4px!important}
+ .top-hud .brand span,.retro-battle-hud small,.future-battle-hud small,.space-battle-hud small,.rift-battle-hud small{font-size:6px!important}
+ .resource-strip span,.retro-battle-hud span,.future-battle-hud span,.space-battle-hud span,.rift-battle-hud span{padding:3px 4px!important;font-size:8px!important}
+ .battle-actions>button,.retro-battle-hud button,.future-battle-hud button,.space-battle-hud button,.rift-battle-hud button{min-height:28px!important;height:28px!important;padding:0 5px!important;font-size:8px!important}
+ .game-body{grid-template-columns:minmax(0,1fr) 218px!important;gap:3px!important}
+ .retro-battle-body,.future-body,.space-body,.rift-body{grid-template-columns:minmax(0,1fr) 218px!important;gap:3px!important;padding:3px!important}
+ .map-title{height:28px!important;padding:3px 6px!important}.map-title small{display:none!important}.wave-preview{gap:3px!important}.wave-preview span{font-size:6px!important}
+ .retro-preview,.future-preview,.space-preview,.rift-preview{height:28px!important;min-height:28px!important;padding:3px 5px!important}.retro-preview>span,.future-preview>span,.space-preview>span,.rift-preview>span{font-size:6px!important}
+ .tower-panel,.retro-build,.future-build,.space-build,.rift-build{padding:3px!important}
+ .panel-heading{padding:1px 2px 3px!important}.panel-heading small{display:none!important}
+ .tower-grid,.retro-tower-grid,.future-towers,.space-towers,.rift-towers{gap:2px!important}
+ .tower-card,.retro-tower-grid button,.future-towers button,.space-towers button,.rift-towers button{min-height:43px!important;padding:2px!important}
+ .tower-copy small,.retro-tower-grid button small,.future-towers button small,.space-towers button small,.rift-towers button small{display:none!important}
+ .selected-info,.retro-selected-tower,.future-selected-tower,.space-selected-tower,.rift-selected-tower{margin-top:2px!important;padding:4px!important;font-size:7px!important;gap:2px!important}
+ .selected-info small,.retro-selected-tower small,.future-selected-tower small,.space-selected-tower small,.rift-selected-tower small{font-size:6px!important}
+ .objective-strip{height:17px!important;font-size:6px!important}.environment-action-bar{min-height:25px!important;padding:2px 4px!important}.environment-action-bar small{display:none!important}
+ .battle-intel{gap:3px!important}.battle-traits i:nth-child(n+4){display:none!important}.battle-danger{font-size:6px!important}.battle-traits i{font-size:5px!important;padding:1px 2px!important}
+ .global-boss-hud{top:44px!important;max-width:46vw!important;transform:translateX(-50%) scale(.82)!important;transform-origin:top center!important}
+ .chrono-wave-ribbon{bottom:3px!important;right:3px!important}
+ .result-card,.retro-result>div,.future-result>div,.space-result>div,.rift-result>div{padding:14px!important;max-height:92dvh!important}.result-icon{font-size:34px!important}
+}
