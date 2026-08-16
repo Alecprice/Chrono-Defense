@@ -3,6 +3,7 @@ import { stoneAgeMaps } from '../data/worlds/stoneAge/maps.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { getStoneAgeLayout } from '../data/worlds/stoneAge/layouts.js';
 import { getStoneAgeEnvironment } from '../data/worlds/stoneAge/environment.js';
+import { StoneAgeVillage } from './StoneAgeVillage.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
@@ -52,6 +53,8 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
       </div>
 
       <aside className="campaign-side">
+        <StoneAgeVillage completedMap={completed}/>
+
         <div className="selected-map-card">
           <div className="selected-map-art">{map.icon}{map.boss?'👑':''}</div>
           <div><small>MAP {map.number} • {map.region}</small><h2>{map.name}</h2><p>{map.mechanic}</p></div>
