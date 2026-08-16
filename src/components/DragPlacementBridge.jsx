@@ -14,17 +14,18 @@ export function DragPlacementBridge(){
   const down=event=>{
     const config=configFor(event.target);if(!config)return;
     const button=event.target.closest(config.build);if(!button||button.disabled)return;if(event.pointerType==='mouse'&&event.button!==0)return;
-    drag={pointerId:event.pointerId,button,config,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY,ghost:null,moved:false};
+    drag={pointerId:event.pointerId,button,config,startX:event.clientX,startY:event.clientY,ghost:null,moved:false};
   };
   const move=event=>{
-    if(!drag||event.pointerId!==drag.pointerId)return;drag.x=event.clientX;drag.y=event.clientY;
+    if(!drag||event.pointerId!==drag.pointerId)return;
     if(!drag.moved&&Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>8){drag.moved=true;drag.ghost=makeGhost(drag.button,event.clientX,event.clientY)}
     if(drag.ghost){drag.ghost.style.left=`${event.clientX}px`;drag.ghost.style.top=`${event.clientY}px`;}
   };
   const finish=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;const current=drag;drag=null;current.ghost?.remove();if(!current.moved)return;
     const target=document.elementFromPoint(event.clientX,event.clientY)?.closest?.(current.config.cell);if(!target)return;
-    current.button.click();target.click();
+    current.button.click();
+    requestAnimationFrame(()=>{if(document.contains(target))target.click()});
   };
   const cancel=event=>{if(!drag||event.pointerId!==drag.pointerId)return;drag.ghost?.remove();drag=null};
   document.addEventListener('pointerdown',down,{passive:true});window.addEventListener('pointermove',move,{passive:true});window.addEventListener('pointerup',finish,{passive:true});window.addEventListener('pointercancel',cancel,{passive:true});
