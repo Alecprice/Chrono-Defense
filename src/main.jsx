@@ -40,6 +40,7 @@ import './styles/app-update.css';
 import './styles/boss-entry.css';
 import './styles/base-impact.css';
 import './styles/shop-affordability.css';
+import './styles/map-objectives.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
