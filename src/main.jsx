@@ -4,6 +4,7 @@ import { App } from './app/App.jsx';
 import './styles/global.css';
 import './styles/campaign.css';
 import './styles/mechanics.css';
+import './styles/codex.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
