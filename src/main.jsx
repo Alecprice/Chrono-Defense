@@ -6,6 +6,7 @@ import './styles/campaign.css';
 import './styles/mechanics.css';
 import './styles/codex.css';
 import './styles/village.css';
+import './styles/settings.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
