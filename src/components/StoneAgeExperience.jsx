@@ -7,6 +7,8 @@ import { StoneAgeBattleV3 } from './StoneAgeBattleV3.jsx';
 import { StoneAgeCodex } from './StoneAgeCodex.jsx';
 import { StoneAgeTutorial } from './StoneAgeTutorial.jsx';
 import { GameSettings } from './GameSettings.jsx';
+import { StoneAgeStats } from './StoneAgeStats.jsx';
+import { SaveManager } from './SaveManager.jsx';
 
 export function StoneAgeExperience() {
   const [save,setSave]=useState(()=>loadSave());
@@ -18,6 +20,8 @@ export function StoneAgeExperience() {
   const [showAchievements,setShowAchievements]=useState(false);
   const [showCodex,setShowCodex]=useState(false);
   const [showSettings,setShowSettings]=useState(false);
+  const [showStats,setShowStats]=useState(false);
+  const [showSaveTools,setShowSaveTools]=useState(false);
   const [achievementToast,setAchievementToast]=useState(null);
 
   useEffect(()=>persistSave(save),[save]);
@@ -77,6 +81,8 @@ export function StoneAgeExperience() {
   const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
   const finishTutorial=()=>setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
+  const launchDaily=challenge=>{setSelectedMap(challenge.mapNumber);setSelectedMode(challenge.modeId);setBattleKey(value=>value+1);setScreen('battle')};
+  const replaceSave=next=>{setSave(next);setSelectedMap(Math.min(25,Math.max(1,next.worlds['stone-age'].highestMap??1)));setSelectedMode('normal')};
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -89,6 +95,9 @@ export function StoneAgeExperience() {
       onAchievements={()=>setShowAchievements(true)}
       onCodex={()=>setShowCodex(true)}
       onSettings={()=>setShowSettings(true)}
+      onStats={()=>setShowStats(true)}
+      onSaveTools={()=>setShowSaveTools(true)}
+      onDaily={launchDaily}
     /> : <StoneAgeBattleV3
       key={`${selectedMap}-${selectedMode}-${battleKey}`}
       mapNumber={selectedMap}
@@ -113,6 +122,8 @@ export function StoneAgeExperience() {
 
     {showCodex&&<StoneAgeCodex stoneSave={stone} onClose={()=>setShowCodex(false)}/>} 
     {showSettings&&<GameSettings settings={save.settings??{}} onChange={updateSettings} onClose={()=>setShowSettings(false)}/>} 
+    {showStats&&<StoneAgeStats stoneSave={stone} onClose={()=>setShowStats(false)}/>} 
+    {showSaveTools&&<SaveManager save={save} onReplace={replaceSave} onClose={()=>setShowSaveTools(false)}/>} 
 
     {achievementToast&&<div className="achievement-toast"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
   </>
