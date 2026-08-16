@@ -5,7 +5,7 @@ const stoneAgeDefaults={highestMap:1,completedMap:0,totems:0,mastery:0,tutorialC
 const retroDefaults={unlocked:false,highestMap:1,completedMap:0,cartridges:0,mastery:0,tutorialComplete:false,highScore:0,bestCombo:1,best:{},achievements:[],stats:{...sharedStats}};
 const futureDefaults={unlocked:false,highestMap:1,completedMap:0,dataCores:0,mastery:0,tutorialComplete:false,best:{},achievements:[],stats:{...sharedStats}};
 const spaceDefaults={unlocked:false,highestMap:1,completedMap:0,starCores:0,mastery:0,tutorialComplete:false,best:{},achievements:[],stats:{...sharedStats}};
-const riftDefaults={unlocked:false,highestMap:1,completedMap:0,riftShards:0,mastery:0,best:{},stats:{...sharedStats}};
+const riftDefaults={unlocked:false,highestMap:1,completedMap:0,riftShards:0,mastery:0,tutorialComplete:false,best:{},stats:{...sharedStats}};
 
 export function defaultSave(){return{version:1,activeWorld:'stone-age',worlds:{'stone-age':clone(stoneAgeDefaults),retro:clone(retroDefaults),future:clone(futureDefaults),space:clone(spaceDefaults),'time-rift':clone(riftDefaults)},settings:{reducedMotion:false,haptics:true,effects:'high',largeUI:false,highContrast:false,sound:true,music:true}};}
 function clone(value){return JSON.parse(JSON.stringify(value));}
@@ -24,4 +24,4 @@ export function normalizeSave(parsed){
 export function parseSaveText(text=''){const parsed=JSON.parse(text);if(parsed?.version!==1||!parsed?.worlds?.['stone-age'])throw new Error('This is not a compatible Chrono Defense save.');return normalizeSave(parsed);}
 export function serializeSave(save){return JSON.stringify(normalizeSave(save),null,2);}
 export function loadSave(storage=globalThis.localStorage){if(!storage)return defaultSave();try{const raw=storage.getItem(SAVE_KEY);return raw?parseSaveText(raw):defaultSave()}catch{return defaultSave()}}
-export function persistSave(save,storage=globalThis.localStorage){storage?.setItem(SAVE_KEY,JSON.stringify(normalizeSave(save)));}
+export function persistSave(save,storage=globalThis.localStorage){const normalized=normalizeSave(save);storage?.setItem(SAVE_KEY,JSON.stringify(normalized));try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save',{detail:{save:normalized}}))}catch{/* non-browser storage */}}
