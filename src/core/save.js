@@ -1,4 +1,6 @@
 export const SAVE_KEY = 'chrono-defense-save-v1';
+export const SAVE_BACKUP_KEY = 'chrono-defense-save-v1-backup';
+export const SAVE_META_KEY = 'chrono-defense-save-v1-meta';
 
 const sharedStats={kills:0,wavesCleared:0,mapsCompleted:0,bossesDefeated:0,flawlessMaps:0,structuresBuilt:0,upgrades:0,resourcesCollected:0,towerKills:{},modeWins:{}};
 const stoneAgeDefaults={highestMap:1,completedMap:0,totems:0,mastery:0,tutorialComplete:false,best:{},achievements:[],stats:{...sharedStats}};
@@ -23,5 +25,8 @@ export function normalizeSave(parsed){
 }
 export function parseSaveText(text=''){const parsed=JSON.parse(text);if(parsed?.version!==1||!parsed?.worlds?.['stone-age'])throw new Error('This is not a compatible Chrono Defense save.');return normalizeSave(parsed);}
 export function serializeSave(save){return JSON.stringify(normalizeSave(save),null,2);}
-export function loadSave(storage=globalThis.localStorage){if(!storage)return defaultSave();try{const raw=storage.getItem(SAVE_KEY);return raw?parseSaveText(raw):defaultSave()}catch{return defaultSave()}}
-export function persistSave(save,storage=globalThis.localStorage){const normalized=normalizeSave(save);storage?.setItem(SAVE_KEY,JSON.stringify(normalized));try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save',{detail:{save:normalized}}))}catch{/* non-browser storage */}}
+function parseStored(raw){if(!raw)return null;try{return parseSaveText(raw)}catch{return null}}
+export function loadSave(storage=globalThis.localStorage){if(!storage)return defaultSave();const primary=parseStored(storage.getItem(SAVE_KEY));if(primary)return primary;const backup=parseStored(storage.getItem(SAVE_BACKUP_KEY));if(backup){try{storage.setItem(SAVE_KEY,JSON.stringify(backup));storage.setItem(SAVE_META_KEY,JSON.stringify({lastRecovered:new Date().toISOString(),source:'backup'}));globalThis.dispatchEvent?.(new CustomEvent('chrono:save-recovered'))}catch{}return backup}return defaultSave();}
+export function persistSave(save,storage=globalThis.localStorage){const normalized=normalizeSave(save);if(!storage)return normalized;const current=storage.getItem(SAVE_KEY);if(parseStored(current))try{storage.setItem(SAVE_BACKUP_KEY,current)}catch{}try{storage.setItem(SAVE_KEY,JSON.stringify(normalized));storage.setItem(SAVE_META_KEY,JSON.stringify({lastSaved:new Date().toISOString(),version:normalized.version}));globalThis.dispatchEvent?.(new CustomEvent('chrono:save',{detail:{save:normalized}}))}catch{/* storage may be full/private */}return normalized;}
+export function loadSaveMeta(storage=globalThis.localStorage){try{return JSON.parse(storage?.getItem(SAVE_META_KEY)||'{}')}catch{return{}}}
+export function restoreBackup(storage=globalThis.localStorage){const backup=parseStored(storage?.getItem(SAVE_BACKUP_KEY));if(!backup)throw new Error('No valid backup save is available.');storage?.setItem(SAVE_KEY,JSON.stringify(backup));return backup;}
