@@ -1,0 +1,4 @@
+import React,{useEffect,useState}from'react';
+import{loadSave}from'../core/save.js';
+const eras=[['stone-age','🪨','Stone Age'],['retro','🕹️','Retro'],['future','🤖','Future'],['space','🚀','Space'],['time-rift','🌀','Time Rift']];
+export function EraSwitcher({active,onSwitch}){const[open,setOpen]=useState(false),[save,setSave]=useState(()=>loadSave());useEffect(()=>{if(open)setSave(loadSave())},[open,active]);const unlocked=id=>id==='stone-age'||Boolean(save.worlds?.[id]?.unlocked);return <div className={`era-switcher ${open?'open':''}`}><button className="era-switch-toggle" onClick={()=>setOpen(v=>!v)} aria-label="Change era">⏳</button>{open&&<div className="era-switch-menu"><small>TIMELINE</small>{eras.map(([id,icon,name])=><button key={id} disabled={!unlocked(id)} className={active===id?'active':''} onClick={()=>{if(unlocked(id)){onSwitch(id);setOpen(false)}}}><span>{unlocked(id)?icon:'🔒'}</span><b>{unlocked(id)?name:'Unknown Era'}</b></button>)}</div>}</div>}
