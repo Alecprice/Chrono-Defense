@@ -1,0 +1,10 @@
+import{useEffect}from'react';
+const configs=[
+ {id:'stone',root:'.game-frame.battle-screen.enhanced-battle',read:t=>{const m=t.match(/🏕️\s*(\d+)\s*\/\s*250/);return m?{value:+m[1],max:250,icon:'🏕️'}:null}},
+ {id:'retro',root:'.retro-battle',read:t=>{const m=t.match(/❤️\s*(\d+)\s*•\s*(\d+)\s*\/\s*100/);return m?{value:+m[1]*100+(+m[2]),max:400,icon:'❤️'}:null}},
+ {id:'future',root:'.future-battle',read:t=>{const s=t.match(/🛡️\s*(\d+)\s*\/\s*(\d+)/),c=t.match(/💙\s*(\d+)\s*\/\s*200/);return s&&c?{value:+c[1]*1000+(+s[1]),max:200000+(+s[2]),icon:+c[1]<200?'💙':'🛡️'}:null}},
+ {id:'space',root:'.space-battle',read:t=>{const s=t.match(/🛡️\s*(\d+)\s*\/\s*(\d+)/),c=t.match(/🏙️\s*(\d+)\s*\/\s*100/);return s&&c?{value:+c[1]*1000+(+s[1]),max:100000+(+s[2]),icon:+c[1]<100?'🏙️':'🛡️'}:null}},
+ {id:'rift',root:'.rift-battle',read:t=>{const m=t.match(/🧭\s*(\d+)\s*\/\s*1000/);return m?{value:+m[1],max:1000,icon:'🧭'}:null}},
+];
+function flash(id,root,data){if(document.documentElement.classList.contains('chrono-reduced-motion'))return;const n=document.createElement('div');n.className=`chrono-base-impact ${id} ${data.value/data.max<.28?'critical':''}`;document.body.appendChild(n);setTimeout(()=>n.remove(),420);const span=[...root.querySelectorAll('span')].find(s=>s.textContent.includes(data.icon));if(span){span.classList.remove('chrono-health-hit');void span.offsetWidth;span.classList.add('chrono-health-hit');setTimeout(()=>span.classList.remove('chrono-health-hit'),430)}try{if(navigator.vibrate&&document.documentElement.dataset.effects!=='low')navigator.vibrate(12)}catch{}}
+export function BaseImpactBridge(){useEffect(()=>{const last=new Map();const timer=setInterval(()=>{configs.forEach(c=>{const root=document.querySelector(c.root);if(!root){last.delete(c.id);return}const data=c.read(root.textContent);if(!data)return;const prior=last.get(c.id);if(prior!=null&&data.value<prior)flash(c.id,root,data);last.set(c.id,data.value)})},90);return()=>{clearInterval(timer);document.querySelectorAll('.chrono-base-impact').forEach(n=>n.remove());document.querySelectorAll('.chrono-health-hit').forEach(n=>n.classList.remove('chrono-health-hit'))}},[]);return null}
