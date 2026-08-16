@@ -14,6 +14,7 @@ import './styles/retro.css';
 import './styles/retro-meta.css';
 import './styles/future.css';
 import './styles/space.css';
+import './styles/time-rift.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
