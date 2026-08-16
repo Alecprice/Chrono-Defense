@@ -1,0 +1,34 @@
+import{useEffect}from'react';
+
+const configs=[
+  {build:'.retro-tower-grid button',cell:'.retro-cell'},
+  {build:'.future-towers button',cell:'.future-cell'},
+  {build:'.space-towers button',cell:'.space-cell'},
+  {build:'.rift-towers button',cell:'.rift-cell'}
+];
+function configFor(target){return configs.find(config=>target.closest?.(config.build));}
+function makeGhost(button,x,y){const ghost=document.createElement('div');ghost.className='universal-drag-ghost';const icon=button.querySelector(':scope > span')?.textContent??'✦';const name=button.querySelector('b')?.textContent??'Defense';ghost.innerHTML=`<span>${icon}</span><b>${name}</b>`;ghost.style.left=`${x}px`;ghost.style.top=`${y}px`;document.body.appendChild(ghost);return ghost;}
+export function DragPlacementBridge(){
+ useEffect(()=>{
+  let drag=null;
+  const down=event=>{
+    const config=configFor(event.target);if(!config)return;
+    const button=event.target.closest(config.build);if(!button||button.disabled)return;if(event.pointerType==='mouse'&&event.button!==0)return;
+    drag={pointerId:event.pointerId,button,config,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY,ghost:null,moved:false};
+  };
+  const move=event=>{
+    if(!drag||event.pointerId!==drag.pointerId)return;drag.x=event.clientX;drag.y=event.clientY;
+    if(!drag.moved&&Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>8){drag.moved=true;drag.ghost=makeGhost(drag.button,event.clientX,event.clientY)}
+    if(drag.ghost){drag.ghost.style.left=`${event.clientX}px`;drag.ghost.style.top=`${event.clientY}px`;}
+  };
+  const finish=event=>{
+    if(!drag||event.pointerId!==drag.pointerId)return;const current=drag;drag=null;current.ghost?.remove();if(!current.moved)return;
+    const target=document.elementFromPoint(event.clientX,event.clientY)?.closest?.(current.config.cell);if(!target)return;
+    current.button.click();target.click();
+  };
+  const cancel=event=>{if(!drag||event.pointerId!==drag.pointerId)return;drag.ghost?.remove();drag=null};
+  document.addEventListener('pointerdown',down,{passive:true});window.addEventListener('pointermove',move,{passive:true});window.addEventListener('pointerup',finish,{passive:true});window.addEventListener('pointercancel',cancel,{passive:true});
+  return()=>{drag?.ghost?.remove();document.removeEventListener('pointerdown',down);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',finish);window.removeEventListener('pointercancel',cancel)};
+ },[]);
+ return null;
+}
