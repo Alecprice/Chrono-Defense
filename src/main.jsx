@@ -33,6 +33,7 @@ import './styles/rift-boss.css';
 import './styles/chronicle-stats.css';
 import './styles/polish.css';
 import './styles/combat-juice.css';
+import './styles/wave-status.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
