@@ -1,9 +1,6 @@
 const milestones = [10,25,50,100,250,500,1000,2500,5000,10000];
-const towers = [
-  ['rock-thrower','Rock Thrower'],['spear-hunter','Spear Hunter'],['fire-keeper','Fire Keeper'],['boulder-launcher','Boulder Launcher'],
-  ['tar-pit','Tar Pit'],['trapper','Trapper'],['beast-tamer','Beast Tamer'],['shaman','Shaman'],['watchtower','Watchtower'],
-  ['mammoth-rider','Mammoth Rider'],['tribal-warrior','Tribal Warrior'],['fire-slinger','Fire Slinger']
-];
+const towerNames = ['Rock Thrower','Spear Hunter','Fire Keeper','Boulder Launcher','Tar Pit','Trapper','Beast Tamer','Shaman','Watchtower','Mammoth Rider','Tribal Warrior','Fire Slinger'];
+const towerIds = ['rock-thrower','spear-hunter','fire-keeper','boulder-launcher','tar-pit','trapper','beast-tamer','shaman','watchtower','mammoth-rider','tribal-warrior','fire-slinger'];
 
 const general = [
   ['first-blood','First Blood','Defeat your first enemy.',s=>s.kills>=1],
@@ -26,12 +23,12 @@ const killAchievements = milestones.map((value,index)=>({
   test:s=>s.kills>=value
 }));
 
-const towerAchievements = towers.flatMap(([towerId,name])=>[100,500,1500].map((value,tier)=>({
-  id:`tower-${towerId}-${value}`,
+const towerAchievements = towerNames.flatMap((name,towerIndex)=>[100,500,1500].map((value,tier)=>({
+  id:`tower-${towerIndex+1}-${value}`,
   name:`${name} ${['Initiate','Veteran','Master'][tier]}`,
   description:`Defeat ${value.toLocaleString()} enemies with ${name}.`,
   icon:'🛖',
-  test:s=>(s.towerKills?.[towerId]??0)>=value
+  test:s=>(s.towerKills?.[towerIds[towerIndex]]??0)>=value
 })));
 
 const mapAchievements = Array.from({length:25},(_,i)=>({
@@ -59,7 +56,8 @@ const misc = [
   {id:'flawless-5',name:'Unscarred',description:'Complete 5 maps without village damage.',icon:'✨',test:s=>s.flawlessMaps>=5}
 ];
 
-export const stoneAgeAchievements = [...general,...killAchievements,...towerAchievements,...mapAchievements,...modeAchievements,...misc].slice(0,100);
+const all = [...general,...killAchievements,...towerAchievements,...mapAchievements,...modeAchievements,...misc];
+export const stoneAgeAchievements = all.slice(0,100);
 
 export function achievementStatsFromSave(stoneSave={}) {
   return {
