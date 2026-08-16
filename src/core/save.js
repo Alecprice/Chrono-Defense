@@ -32,7 +32,13 @@ export function defaultSave() {
       space: { unlocked: false },
       'time-rift': { unlocked: false }
     },
-    settings: { reducedMotion: false, haptics: true, effects: 'high' }
+    settings: {
+      reducedMotion: false,
+      haptics: true,
+      effects: 'high',
+      largeUI: false,
+      highContrast: false
+    }
   };
 }
 
