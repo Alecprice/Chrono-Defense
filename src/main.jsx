@@ -38,6 +38,7 @@ import './styles/range-preview.css';
 import './styles/compact-landscape.css';
 import './styles/app-update.css';
 import './styles/boss-entry.css';
+import './styles/base-impact.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
