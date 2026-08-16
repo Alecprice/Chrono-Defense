@@ -5,6 +5,7 @@ const stoneAgeDefaults = {
   completedMap: 0,
   totems: 0,
   mastery: 0,
+  tutorialComplete: false,
   best: {},
   achievements: [],
   stats: {
