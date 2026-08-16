@@ -6,7 +6,6 @@ import{FutureExperience}from'./FutureExperience.jsx';
 import{SpaceExperience}from'./SpaceExperience.jsx';
 import{TimeRiftExperience}from'./TimeRiftExperience.jsx';
 import{EraSwitcher}from'./EraSwitcher.jsx';
-import{CombatJuiceBridge}from'./CombatJuiceBridge.jsx';
 
 function worldFromHash(){const value=(globalThis.location?.hash||'').replace('#','');return['stone-age','retro','future','space','time-rift'].includes(value)?value:'stone-age';}
 export function ChronoRouter(){
@@ -18,5 +17,5 @@ export function ChronoRouter(){
  if(world==='future')content=<FutureExperience onSwitchWorld={switchWorld}/>;
  if(world==='space')content=<SpaceExperience onSwitchWorld={switchWorld}/>;
  if(world==='time-rift')content=<TimeRiftExperience onSwitchWorld={switchWorld}/>;
- return <>{content}<CombatJuiceBridge/><EraSwitcher active={world} onSwitch={switchWorld}/></>;
+ return <>{content}<EraSwitcher active={world} onSwitch={switchWorld}/></>;
 }
