@@ -58,7 +58,7 @@ export function applyStoneAgeAttack({base,item,stats,target,enemies}){
     enemy.hp-=damage;
     enemy.lastHitTower=base.id;
     if(base.id==='fire-keeper'||base.id==='fire-slinger'){
-      const burnScale=base.id==='fire-slinger'?.5:.35;
+      const burnScale=base.id==='fire-slinger' ? .5 : .35;
       enemy.burnDps=Math.max(enemy.burnDps??0,stats.damage*burnScale);
       enemy.burnTime=Math.max(enemy.burnTime??0,base.id==='fire-slinger'?3.5:2.5);
     }
