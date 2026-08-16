@@ -15,8 +15,10 @@ import './styles/retro-meta.css';
 import './styles/future.css';
 import './styles/space.css';
 import './styles/time-rift.css';
+import './styles/rift-meta.css';
 import './styles/era-switcher.css';
 import './styles/world-meta.css';
+import './styles/profile.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
