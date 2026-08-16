@@ -1,9 +1,22 @@
 {
   "name": "Chrono Defense",
   "short_name": "Chrono Defense",
-  "start_url": "/",
+  "description": "A fullscreen tower-defense journey from the Stone Age through Retro, Future, Space, and the Time Rift.",
+  "id": "/",
+  "start_url": "/#stone-age",
+  "scope": "/",
   "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "orientation": "landscape",
-  "background_color": "#17130f",
-  "theme_color": "#17130f"
+  "background_color": "#0b0806",
+  "theme_color": "#17130f",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/chrono-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
