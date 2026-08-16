@@ -7,7 +7,7 @@ import { StoneAgeVillage } from './StoneAgeVillage.jsx';
 
 const regions=['Green Valley','Wild Jungle','Frozen Age','Burning Lands','Lost World'];
 
-export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex }) {
+export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMode, setSelectedMode, onStart, onAchievements, onCodex, onSettings }) {
   const stone=save.worlds['stone-age'];
   const map=stoneAgeMaps[selectedMap-1];
   const mode=stoneAgeModes.find(item=>item.id===selectedMode)??stoneAgeModes[0];
@@ -25,6 +25,7 @@ export function StoneAgeCampaign({ save, selectedMap, setSelectedMap, selectedMo
         <span><b>🏆 {(stone.achievements??[]).length}/100</b><small>Achievements</small></span>
         <button onClick={onCodex}>Field Guide</button>
         <button onClick={onAchievements}>Achievements</button>
+        <button onClick={onSettings}>⚙ Settings</button>
       </div>
     </header>
 
