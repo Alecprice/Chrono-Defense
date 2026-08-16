@@ -1,0 +1,29 @@
+export function retroTowerStats(base,placed={level:1,branch:null}){const level=placed.level??1,branch=placed.branch;let damage=Math.round(base.damage*(1+(level-1)*.42)),range=Math.round(base.range*(1+(level-1)*.07)),fireRate=Math.max(.25,base.fireRate*(1-(level-1)*.09)),armorPierce=0,targets=1,splash=0,slow=0,rewind=0,damageAmp=0,crit=.03;
+ if(branch==='A'){
+  if(base.id==='pixel-blaster'){damage=Math.round(damage*1.55);armorPierce=.35}
+  if(base.id==='boom-box'){damage=Math.round(damage*1.55);splash=140;rewind=8}
+  if(base.id==='freeze-ray'){slow=.38;damage=Math.round(damage*1.2)}
+  if(base.id==='laser-grid'){damage=Math.round(damage*1.35);crit=.18}
+  if(base.id==='missile-command'){damage=Math.round(damage*1.65);splash=120}
+  if(base.id==='tesla-coil'){damage=Math.round(damage*1.35);armorPierce=.3;targets=4}
+  if(base.id==='glitch-tower'){damageAmp=.28;damage=Math.round(damage*1.2)}
+  if(base.id==='boss-buster'){damage=Math.round(damage*1.7)}
+  if(base.id==='byte-cannon'){targets=6;armorPierce=.28}
+  if(base.id==='warp-pad')rewind=95
+ }
+ if(branch==='B'){
+  if(base.id==='pixel-blaster')fireRate*=.45;
+  if(base.id==='boom-box'){fireRate*=.55;splash=95;targets=4}
+  if(base.id==='freeze-ray'){targets=4;slow=.18}
+  if(base.id==='laser-grid'){targets=3;fireRate*=.8}
+  if(base.id==='missile-command'){targets=5;splash=95;damage=Math.round(damage*.78)}
+  if(base.id==='tesla-coil'){targets=7;damage=Math.round(damage*.9)}
+  if(base.id==='glitch-tower')slow=.42;
+  if(base.id==='boss-buster')fireRate*=.55;
+  if(base.id==='byte-cannon'){targets=3;fireRate*=.62}
+  if(base.id==='warp-pad'){rewind=26;targets=5;slow=.28}
+ }
+ return{damage,range,fireRate,armorPierce,targets,splash,slow,rewind,damageAmp,crit};}
+export function retroEvolutionCost(base){return Math.round(base.cost*1.25)}
+export function retroSupport(placed={},towers=[]){let damageMult=1,rateMult=1,coinMult=1,comboProtection=false;Object.values(placed).forEach(p=>{const base=towers.find(t=>t.id===p.id);if(base?.id==='power-station'&&p.branch==='A')damageMult*=1.12;if(base?.id==='power-station'&&p.branch==='B')rateMult*=.88;if(base?.id==='coin-magnet'&&p.branch==='A')coinMult*=1.18;if(base?.id==='coin-magnet'&&p.branch==='B')comboProtection=true});return{damageMult,rateMult,coinMult,comboProtection}}
+export function applyRetroDamage(enemy,raw,stats,sourceId){const amp=enemy.damageAmp??0,effectiveArmor=Math.max(0,(enemy.armor??0)-(stats.armorPierce??0));let damage=Math.max(1,Math.round(raw*(1+amp)*(1-Math.min(.78,effectiveArmor))));if(Math.random()<(stats.crit??0))damage=Math.round(damage*2);enemy.hp-=damage;if(stats.slow)enemy.speed=Math.max(15,enemy.speed*(1-stats.slow));if(stats.rewind)enemy.travel=Math.max(0,enemy.travel-stats.rewind);if(stats.damageAmp)enemy.damageAmp=Math.max(enemy.damageAmp??0,stats.damageAmp);enemy.lastHitTower=sourceId;if(enemy.hp<=0)enemy.dead=true;return damage;}
