@@ -35,6 +35,7 @@ import './styles/polish.css';
 import './styles/combat-juice.css';
 import './styles/wave-status.css';
 import './styles/range-preview.css';
+import './styles/compact-landscape.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
