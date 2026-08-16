@@ -16,7 +16,7 @@ const MAPS = [
   ['The Long Winter','Frozen Age','👑','Boss arena','Defeat the Great Mammoth'],
   ['Ashen Approach','Burning Lands','🌋','Ash field','Finish with at least 50 Stone remaining'],
   ['River of Fire','Burning Lands','🔥','Lava hazards','Use Fire Keeper or Fire Slinger at least once'],
-  ['Mouth of the Mountain','Burning Lands','🌋','Volcanic vents','Survive repeated volcanic disruptions'],
+  ['Mouth of the Mountain','Burning Lands','🌋','Volcanic vents','Use the environment action at least once'],
   ['Broken Earth','Burning Lands','🪨','Cracked earth lanes','Complete the map using five or fewer tower families'],
   ['Tyrant’s Caldera','Burning Lands','🦖','Boss arena','Defeat the Volcano Tyrant'],
   ['Bonefield','Lost World','🦴','Fossil basin','Defeat 100 enemies'],
@@ -38,6 +38,6 @@ export const stoneAgeMaps = MAPS.map(([name,region,icon,mechanic,bonusObjective]
     mechanic,
     boss:number%5===0,
     bonusObjective,
-    totems:['Complete the map',highHealthObjective,'Use six or fewer combat towers'],
+    totems:['Complete the map',highHealthObjective,bonusObjective],
   };
 });
