@@ -29,6 +29,7 @@ import './styles/save-resilience.css';
 import './styles/era-challenges.css';
 import './styles/era-daily.css';
 import './styles/evolutions.css';
+import './styles/rift-boss.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
