@@ -13,23 +13,26 @@ import { BossEntranceBridge } from '../components/BossEntranceBridge.jsx';
 import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
 import { ShopAffordabilityBridge } from '../components/ShopAffordabilityBridge.jsx';
 import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
+import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
 
 export function App() {
   return (
-    <FullscreenShell>
-      <ChronoRouter />
-      <AppStatus />
-      <GameAudioBridge />
-      <SettingsBridge />
-      <DragPlacementBridge />
-      <LiveAssetBridge />
-      <BattleIntelBridge />
-      <KeyboardControls />
-      <DailyMissionBridge />
-      <BossEntranceBridge />
-      <BaseImpactBridge />
-      <ShopAffordabilityBridge />
-      <MapObjectiveBridge />
-    </FullscreenShell>
+    <AppErrorBoundary>
+      <FullscreenShell>
+        <ChronoRouter />
+        <AppStatus />
+        <GameAudioBridge />
+        <SettingsBridge />
+        <DragPlacementBridge />
+        <LiveAssetBridge />
+        <BattleIntelBridge />
+        <KeyboardControls />
+        <DailyMissionBridge />
+        <BossEntranceBridge />
+        <BaseImpactBridge />
+        <ShopAffordabilityBridge />
+        <MapObjectiveBridge />
+      </FullscreenShell>
+    </AppErrorBoundary>
   );
 }
