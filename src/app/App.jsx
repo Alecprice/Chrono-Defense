@@ -25,6 +25,7 @@ import { JuniorSandbox } from '../components/JuniorSandbox.jsx';
 import { EnemyEncounterBook } from '../components/EnemyEncounterBook.jsx';
 import { SessionBreakBridge } from '../components/SessionBreakBridge.jsx';
 import { TowerRoleBridge } from '../components/TowerRoleBridge.jsx';
+import { LowHealthBridge } from '../components/LowHealthBridge.jsx';
 
 export function App() {
   return (
@@ -54,6 +55,7 @@ export function App() {
         <EnemyEncounterBook />
         <SessionBreakBridge />
         <TowerRoleBridge />
+        <LowHealthBridge />
       </FullscreenShell>
     </AppErrorBoundary>
   );
