@@ -87,7 +87,7 @@ test('fully precached build reloads while browser is offline', async ({ browser 
   await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
   await page.waitForFunction(async () => {
     if (!('caches' in window)) return false;
-    const cache = await caches.open('chrono-defense-shell-v27');
+    const cache = await caches.open('chrono-defense-shell-v28');
     return Boolean(await cache.match('/index.html'));
   }, null, { timeout: 20000 });
   await expect(page.getByText(/Offline Ready/)).toBeVisible();
