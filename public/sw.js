@@ -1,28 +1,39 @@
-const CACHE='chrono-defense-shell-v28';
-const READY='/__chrono-offline-ready-v28';
+const CACHE='chrono-defense-shell-v29';
+const READY='/__chrono-offline-ready-v29';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
+const canonical=url=>new URL(url,self.location.origin).href;
 async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
-async function isOfflineReady(){try{const cache=await caches.open(CACHE);return Boolean(await cache.match(READY))}catch{return false}}
+async function isOfflineReady(){try{const cache=await caches.open(CACHE);return Boolean(await cache.match(canonical(READY)))}catch{return false}}
+async function cacheRequired(cache,url){
+  const request=new Request(canonical(url),{cache:'reload'});
+  const response=await fetch(request);
+  if(!response.ok)throw new Error(`Failed to precache ${url}: ${response.status}`);
+  await cache.put(canonical(url),response.clone());
+}
 async function precache(target=null){
   const cache=await caches.open(CACHE);
-  await cache.delete(READY);
-  await cache.addAll(CORE);
+  await cache.delete(canonical(READY));
   try{
-    const response=await fetch('/precache-manifest.json',{cache:'no-store'});
-    if(!response.ok)throw new Error('manifest');
-    const files=await response.json();
+    await Promise.all(CORE.map(url=>cacheRequired(cache,url)));
+    const manifestResponse=await cache.match(canonical('/precache-manifest.json'));
+    if(!manifestResponse)throw new Error('Missing precache manifest');
+    const files=await manifestResponse.json();
     const urls=[...new Set([...CORE,...files])];
-    let done=0;await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
-    for(let i=0;i<urls.length;i+=20){
-      const batch=urls.slice(i,i+20);
-      await Promise.all(batch.map(async url=>{
-        try{const request=new Request(url,{cache:'reload'});const asset=await fetch(request);if(asset.ok)await cache.put(request,asset)}catch{}
-      }));
-      done=Math.min(urls.length,i+batch.length);await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
+    let done=0;
+    await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
+    for(const url of urls){
+      await cacheRequired(cache,url);
+      done+=1;
+      await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
     }
-    await cache.put(READY,new Response('ready',{headers:{'content-type':'text/plain'}}));
+    for(const url of urls){if(!(await cache.match(canonical(url))))throw new Error(`Missing cached asset ${url}`)}
+    await cache.put(canonical(READY),new Response('ready',{headers:{'content-type':'text/plain'}}));
     return true;
-  }catch{return false}
+  }catch(error){
+    await cache.delete(canonical(READY));
+    console.error('Chrono offline precache failed',error);
+    return false;
+  }
 }
 async function announceOfflineReady(target=null){await post(target,{type:'CHRONO_OFFLINE_READY',cache:CACHE})}
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
@@ -36,7 +47,8 @@ self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);if(url.origin!==location.origin)return;
   if(event.request.mode==='navigate'){
-    event.respondWith(caches.match('/index.html').then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('/index.html',copy));return response})));return;
+    event.respondWith(caches.open(CACHE).then(cache=>cache.match(canonical('/index.html')).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok)cache.put(canonical('/index.html'),response.clone());return response}))));
+    return;
   }
-  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response})));
+  event.respondWith(caches.open(CACHE).then(cache=>cache.match(canonical(url.pathname+url.search)).then(cached=>cached||cache.match(canonical(url.pathname)).then(pathCached=>pathCached||fetch(event.request).then(response=>{if(response.ok)cache.put(canonical(url.pathname),response.clone());return response})))));
 });
