@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { STARTING_RESOURCES, addResources, canAfford, spend } from '../core/economy.js';
 import { checkpointMatches, clearBattleCheckpoint, saveBattleCheckpoint } from '../core/battleCheckpoint.js';
+import { applyAdaptiveAssist } from '../core/adaptiveAssist.js';
 import { chooseTarget, damageVillage, distance, towerStats, upgradeCost } from '../core/combat.js';
 import { applyStoneAgeAttack, shieldWallMultiplier } from '../core/stoneAgeRuntime.js';
 import { mapTotems, masteryReward } from '../core/progression.js';
@@ -322,7 +323,7 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
 
   const startWave = () => {
     if (runningRef.current || status === 'won' || status === 'lost') return;
-    let units = buildWave({ mapNumber, waveNumber: waveRef.current, mode });
+    let units = applyAdaptiveAssist('stone-age', mapNumber, buildWave({ mapNumber, waveNumber: waveRef.current, mode }));
     if (caveSealed && environment.caveCell != null) {
       let removed = 0;
       units = units.filter((unit) => {
