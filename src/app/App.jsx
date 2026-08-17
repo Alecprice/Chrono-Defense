@@ -17,6 +17,7 @@ import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
 import { StoneAgeRouteGuard } from '../components/StoneAgeRouteGuard.jsx';
 import { JuniorCoach } from '../components/JuniorCoach.jsx';
 import { JuniorRewardBridge } from '../components/JuniorRewardBridge.jsx';
+import { KidSafeActionBridge } from '../components/KidSafeActionBridge.jsx';
 
 export function App() {
   return (
@@ -38,6 +39,7 @@ export function App() {
         <StoneAgeRouteGuard />
         <JuniorCoach />
         <JuniorRewardBridge />
+        <KidSafeActionBridge />
       </FullscreenShell>
     </AppErrorBoundary>
   );
