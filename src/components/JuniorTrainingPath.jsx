@@ -7,10 +7,10 @@ const LESSONS={
   3:{stage:'TRAINING',icon:'⬆️',title:'Training 3: Upgrade',idea:'Make fewer towers stronger.',tower:'Spear Hunter',steps:['Build 2 towers','Upgrade one tower','Keep the village safe'],tip:'A well-placed upgraded tower can be better than several weak towers.'},
   4:{stage:'TRAINING',icon:'🧠',title:'Training 4: Mix Tower Jobs',idea:'Use different tower roles together.',tower:'Fire Keeper',steps:['Use 2 tower families','Upgrade a favorite','Prepare before each wave'],tip:'Fast towers handle swarms. Strong towers help against tougher enemies.'},
   5:{stage:'TRAINING',icon:'👑',title:'Training 5: First Boss',idea:'Prepare for the Alpha Sabertooth.',tower:'Strong Hit + Support',steps:['Build near road bends','Upgrade before the boss','Defeat the boss'],tip:'Bosses have lots of health. Upgrade your best-positioned towers before starting the final wave.'},
-  6:{stage:'APPRENTICE',icon:'🤝',title:'Apprentice 1: Tower Teamwork',idea:'Combine tower jobs instead of relying on one favorite.',tower:'3 different tower families',steps:['Use 3 tower families','Upgrade one tower','Clear 2 waves'],tip:'Try a fast tower, a strong hitter, and a slowing or support tower so each one has a job.',reward:'Varied defenses prepare you for tougher jungle enemies.'},
-  7:{stage:'APPRENTICE',icon:'🔄',title:'Apprentice 2: Rebuild Smart',idea:'Learn that changing your plan is part of strategy.',tower:'Build → Sell → Rebuild',steps:['Build 4 defenses','Sell or undo one choice','Clear another wave'],tip:'A bad spot is not a failure. Sell or Undo, then put the tower where it can cover more road.',reward:'Smart rebuilding makes later challenge modes much easier.'},
+  6:{stage:'APPRENTICE',icon:'🤝',title:'Apprentice 1: Adapt Your Defense',idea:'Mix tower jobs and learn that changing a weak setup is okay.',tower:'3 tower families',steps:['Use 3 tower families','Sell or undo one weak choice','Upgrade a keeper'],tip:'Try a fast tower, a strong hitter, and a slowing or support tower. If one is badly placed, rebuild it instead of being stuck with the mistake.',reward:'Varied defenses prepare you for tougher jungle enemies.'},
+  7:{stage:'APPRENTICE',icon:'🧭',title:'Apprentice 2: Plan Before You Build',idea:'Win without selling by thinking ahead.',tower:'4 well-spaced defenses',steps:['Build 4 defenses','Upgrade 2 towers','Clear 2 waves without selling'],tip:'Map 7 rewards you for not selling. Look at the whole road first, then commit to strong positions.',reward:'This matches the map bonus: complete the battle without selling a tower.'},
   8:{stage:'APPRENTICE',icon:'🕳️',title:'Apprentice 3: Cave Ambush',idea:'React when the map itself creates danger.',tower:'Watchtower + slowing tower',steps:['Build near the cave route','Use the map action','Survive 2 waves'],tip:'Keep some resources ready. Cave ambushes can change the danger quickly, so do not spend everything at once.',reward:'Clearing Map 8 unlocks the Watchtower.'},
-  9:{stage:'APPRENTICE',icon:'🏕️',title:'Apprentice 4: Resource Mastery',idea:'Run an economy without forgetting defense.',tower:'Wood Camp + Quarry + Food Camp',steps:['Build all 3 camp types','Upgrade a defense','Clear 2 waves'],tip:'Build fighting towers first. Add camps when your defense is stable, then use the extra resources to upgrade.',reward:'A balanced economy gives you more choices in long battles.'},
+  9:{stage:'APPRENTICE',icon:'🏕️',title:'Apprentice 4: Resource Mastery',idea:'Run an economy without forgetting defense.',tower:'Wood Camp + Stone Quarry + Hunter Camp',steps:['Build all 3 camp types','Upgrade a defense','Clear 2 waves'],tip:'Build fighting towers first. Add camps when your defense is stable, then use the extra resources to upgrade.',reward:'A balanced economy gives you more choices in long battles.'},
   10:{stage:'APPRENTICE',icon:'🦖',title:'Apprentice 5: Raptor Queen',idea:'Use everything you learned against a boss and its pack.',tower:'4 tower families + upgrades',steps:['Use 4 tower families','Upgrade 2 towers','Defeat the Raptor Queen'],tip:'The Queen brings extra enemies. Spread damage across the route and keep strong towers covering the final bends.',reward:'Victory unlocks the Beast Tamer and completes your Jungle apprenticeship.'},
 };
 
@@ -23,7 +23,7 @@ function upgradedCount(){return occupied().filter(cell=>/L[2-9]|\s[A-B]$/.test(c
 function hasUpgrade(){return upgradedCount()>0}
 function enemiesVisible(){return document.querySelectorAll('.battle-screen .enemy').length>0}
 function wonBattle(){return /Village Defended|Victory!/i.test(document.querySelector('.result-card')?.textContent??'')}
-function campKinds(names){const kinds=new Set();names.forEach(name=>{if(/wood camp/i.test(name))kinds.add('wood');if(/quarry/i.test(name))kinds.add('stone');if(/food camp|hunter.*camp|gather.*food/i.test(name))kinds.add('food')});return kinds}
+function campKinds(names){const kinds=new Set();names.forEach(name=>{if(/wood camp/i.test(name))kinds.add('wood');if(/stone quarry|quarry/i.test(name))kinds.add('stone');if(/hunter camp/i.test(name))kinds.add('food')});return kinds}
 function nearSpecialRoute(){
  const special=document.querySelector('.battle-screen [class*="env-cave"],.battle-screen .environment-mark');
  if(!special)return occupied().length>=3;
@@ -33,12 +33,12 @@ function nearSpecialRoute(){
 function progressFor(map,actions={}){
  const names=towerNames(),count=occupied().length,wave=currentWave(),upgraded=hasUpgrade(),families=new Set(names.filter(name=>!/camp|quarry/i.test(name))).size;
  if(map===1)return [count>0,count>0&&(wave>1||enemiesVisible()),wave>1];
- if(map===2){const camp=names.some(n=>/camp|quarry|gather|food/i.test(n));return [count>0,camp,wave>1]}
+ if(map===2){const camp=names.some(n=>/camp|quarry/i.test(n));return [count>0,camp,wave>1]}
  if(map===3)return [count>=2,upgraded,true];
  if(map===4)return [families>=2,upgraded,wave>1];
  if(map===5)return [count>=3,upgraded,wonBattle()||wave>1];
- if(map===6)return [families>=3,upgraded,wave>=3];
- if(map===7)return [count>=4,Boolean(actions.sold||actions.undo),wave>=2];
+ if(map===6)return [families>=3,Boolean(actions.sold||actions.undo),upgraded];
+ if(map===7)return [count>=4,upgradedCount()>=2,wave>=3&&!actions.sold];
  if(map===8)return [nearSpecialRoute(),Boolean(actions.environment),wave>=3];
  if(map===9)return [campKinds(names).size>=3,upgraded,wave>=3];
  if(map===10)return [families>=4,upgradedCount()>=2,wonBattle()];
