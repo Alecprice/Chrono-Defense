@@ -42,6 +42,7 @@ import './styles/base-impact.css';
 import './styles/shop-affordability.css';
 import './styles/map-objectives.css';
 import './styles/objective-checklist.css';
+import './styles/stone-route.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
