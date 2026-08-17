@@ -16,6 +16,7 @@ export function AppStatus(){
   const saveTimer=useRef(null);
 
   useEffect(()=>{
+    const markReady=cache=>{setOfflineLoading(false);setOfflineProgress(100);setOfflineReady(true);try{localStorage.setItem(OFFLINE_READY_KEY,cache??OFFLINE_CACHE_VERSION)}catch{}};
     const onOnline=()=>setOnline(true);
     const onOffline=()=>setOnline(false);
     const onPrompt=event=>{event.preventDefault();setInstallEvent(event)};
@@ -23,7 +24,7 @@ export function AppStatus(){
     const onUpdate=event=>setUpdateRegistration(event.detail?.registration??null);
     const onPreloadStart=()=>{if(!storedOfflineReady()){setOfflineLoading(true);setOfflineReady(false);setOfflineProgress(0)}};
     const onOfflineProgress=event=>{const done=Number(event.detail?.done??0),total=Number(event.detail?.total??0);setOfflineLoading(true);setOfflineReady(false);if(total>0)setOfflineProgress(Math.max(0,Math.min(100,Math.round(done/total*100))))};
-    const onOfflineReady=event=>{setOfflineLoading(false);setOfflineProgress(100);setOfflineReady(true);try{localStorage.setItem(OFFLINE_READY_KEY,event.detail?.cache??OFFLINE_CACHE_VERSION)}catch{}};
+    const onOfflineReady=event=>markReady(event.detail?.cache);
     const onOfflineUnavailable=()=>setOfflineLoading(false);
     const onSaved=()=>{setSaved(false);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(()=>setSaved(true),450)};
     window.addEventListener('online',onOnline);
@@ -37,8 +38,13 @@ export function AppStatus(){
     window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);
     window.addEventListener('chrono:save',onSaved);
     window.addEventListener('chrono:checkpoint-saved',onSaved);
+    let disposed=false;
+    const verifyCache=async()=>{try{if(!('caches'in window))return;const cache=await caches.open(OFFLINE_CACHE_VERSION);const shell=await cache.match('/index.html');if(shell&&!disposed)markReady(OFFLINE_CACHE_VERSION)}catch{}};
+    verifyCache();
+    const cacheTimer=window.setInterval(verifyCache,900);
     if(!storedOfflineReady()&&'serviceWorker'in navigator){navigator.serviceWorker.ready.then(registration=>{(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}).catch(()=>{})}
     return()=>{
+      disposed=true;window.clearInterval(cacheTimer);
       if(saveTimer.current)clearTimeout(saveTimer.current);
       window.removeEventListener('online',onOnline);
       window.removeEventListener('offline',onOffline);
