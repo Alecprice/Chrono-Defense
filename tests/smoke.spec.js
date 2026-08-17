@@ -38,7 +38,7 @@ test('moving enemies stay inside the visible road corridor',async({page})=>{
 test('fully precached build reloads while browser is offline',async({browser})=>{
  const context=await browser.newContext(),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await setReadySave(page);await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();
- await page.waitForFunction(async()=>{if(!('caches'in window))return false;const cache=await caches.open('chrono-defense-shell-v30');const marker=await cache.match(new URL('/__chrono-offline-ready-v30',location.origin).href);if(!marker)return false;const data=await marker.clone().json();for(const url of data.urls??[]){if(!(await cache.match(new URL(url,location.origin).href)))return false}return true},null,{timeout:30000});
+ await page.waitForFunction(async()=>{if(!('caches'in window))return false;const cache=await caches.open('chrono-defense-shell-v31');const marker=await cache.match(new URL('/__chrono-offline-ready-v31',location.origin).href);if(!marker)return false;const data=await marker.clone().json();for(const url of data.urls??[]){if(!(await cache.match(new URL(url,location.origin).href)))return false}return true},null,{timeout:30000});
  await expect(page.locator('.offline-ready-pill')).toBeVisible({timeout:10000});
  await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});if(!(await page.locator('.campaign-screen').count()))console.log('OFFLINE_RELOAD_BODY:',(await page.locator('body').innerText()).slice(0,2000));await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible({timeout:10000});expect(errors).toEqual([]);await context.setOffline(false);await context.close()
 });
