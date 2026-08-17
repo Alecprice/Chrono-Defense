@@ -1,0 +1,170 @@
+name: Extend All Battle Resume
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch all remaining eras
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def rep(path, old, new, required=True):
+              p=Path(path); s=p.read_text()
+              if old not in s:
+                  if required: raise SystemExit(f'missing pattern in {path}: {old[:100]}')
+                  return
+              p.write_text(s.replace(old,new,1))
+
+          # ---------- RETRO EXPERIENCE ----------
+          path='src/components/RetroExperience.jsx'
+          rep(path,"import{loadSave,persistSave}from'../core/save.js';", "import{loadSave,persistSave}from'../core/save.js';\nimport{clearBattleCheckpoint,loadBattleCheckpoint}from'../core/battleCheckpoint.js';")
+          rep(path,"const[save,setSave]=useState(()=>loadSave());const retro=save.worlds.retro;const[screen,setScreen]=useState('campaign');const[selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,retro.highestMap??1)));const[battleKey,setBattleKey]=useState(0);const[showCodex,setShowCodex]=useState(false);const[challenge,setChallenge]=useState('normal');", "const[save,setSave]=useState(()=>loadSave());const retro=save.worlds.retro;const[resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('retro'));const[screen,setScreen]=useState(()=>retro.tutorialComplete&&resumeCheckpoint?'battle':'campaign');const[selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,retro.highestMap??1)));const[battleKey,setBattleKey]=useState(0);const[showCodex,setShowCodex]=useState(false);const[challenge,setChallenge]=useState(()=>resumeCheckpoint?.modeId??'normal');")
+          rep(path,"const start=()=>{clearActiveDaily();setEraChallenge('retro',challenge);setBattleKey(v=>v+1);setScreen('battle')};const launchDaily=mission=>{launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')};", "const start=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setEraChallenge('retro',challenge);setBattleKey(v=>v+1);setScreen('battle')};const launchDaily=mission=>{clearBattleCheckpoint();setResumeCheckpoint(null);launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')};")
+          rep(path,"const exit=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds.retro.highestMap??1)));setScreen('campaign')};const next=map=>{clearActiveDaily();setSelectedMap(map);setEraChallenge('retro',challenge);setBattleKey(v=>v+1);setScreen('battle')};", "const exit=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds.retro.highestMap??1)));setScreen('campaign')};const next=map=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setSelectedMap(map);setEraChallenge('retro',challenge);setBattleKey(v=>v+1);setScreen('battle')};")
+          rep(path,"<RetroBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next}/>", "<RetroBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} modeId={challenge} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next} resumeCheckpoint={resumeCheckpoint}/>")
+
+          # ---------- FUTURE EXPERIENCE ----------
+          path='src/components/FutureExperience.jsx'
+          rep(path,"import{loadSave,persistSave}from'../core/save.js';", "import{loadSave,persistSave}from'../core/save.js';\nimport{clearBattleCheckpoint,loadBattleCheckpoint}from'../core/battleCheckpoint.js';")
+          rep(path,"const[save,setSave]=useState(()=>loadSave()),world=save.worlds.future,[screen,setScreen]=useState('campaign'),[selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,world.highestMap??1))),[battleKey,setBattleKey]=useState(0),[showCodex,setShowCodex]=useState(false),[challenge,setChallenge]=useState('normal'),", "const[save,setSave]=useState(()=>loadSave()),world=save.worlds.future,[resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('future')),[screen,setScreen]=useState(()=>world.tutorialComplete&&resumeCheckpoint?'battle':'campaign'),[selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,world.highestMap??1))),[battleKey,setBattleKey]=useState(0),[showCodex,setShowCodex]=useState(false),[challenge,setChallenge]=useState(()=>resumeCheckpoint?.modeId??'normal'),")
+          rep(path,"const start=()=>{clearActiveDaily();setEraChallenge('future',challenge);setBattleKey(v=>v+1);setScreen('battle')},launchDaily=mission=>{launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')},", "const start=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setEraChallenge('future',challenge);setBattleKey(v=>v+1);setScreen('battle')},launchDaily=mission=>{clearBattleCheckpoint();setResumeCheckpoint(null);launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')},")
+          rep(path,"exit=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds.future.highestMap??1)));setScreen('campaign')},next=map=>{clearActiveDaily();setSelectedMap(map);setEraChallenge('future',challenge);setBattleKey(v=>v+1);setScreen('battle')},", "exit=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds.future.highestMap??1)));setScreen('campaign')},next=map=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setSelectedMap(map);setEraChallenge('future',challenge);setBattleKey(v=>v+1);setScreen('battle')},")
+          rep(path,"<FutureBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next}/>", "<FutureBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} modeId={challenge} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next} resumeCheckpoint={resumeCheckpoint}/>")
+
+          # ---------- SPACE EXPERIENCE ----------
+          path='src/components/SpaceExperience.jsx'
+          rep(path,"import{loadSave,persistSave}from'../core/save.js';", "import{loadSave,persistSave}from'../core/save.js';\nimport{clearBattleCheckpoint,loadBattleCheckpoint}from'../core/battleCheckpoint.js';")
+          rep(path,"const[save,setSave]=useState(()=>loadSave()),world=save.worlds.space,[screen,setScreen]=useState('campaign'),[selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,world.highestMap??1))),[battleKey,setBattleKey]=useState(0),[showCodex,setShowCodex]=useState(false),[challenge,setChallenge]=useState('normal'),", "const[save,setSave]=useState(()=>loadSave()),world=save.worlds.space,[resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('space')),[screen,setScreen]=useState(()=>world.tutorialComplete&&resumeCheckpoint?'battle':'campaign'),[selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,world.highestMap??1))),[battleKey,setBattleKey]=useState(0),[showCodex,setShowCodex]=useState(false),[challenge,setChallenge]=useState(()=>resumeCheckpoint?.modeId??'normal'),")
+          rep(path,"const start=()=>{clearActiveDaily();setEraChallenge('space',challenge);setBattleKey(v=>v+1);setScreen('battle')},launchDaily=mission=>{launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')},", "const start=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setEraChallenge('space',challenge);setBattleKey(v=>v+1);setScreen('battle')},launchDaily=mission=>{clearBattleCheckpoint();setResumeCheckpoint(null);launchDailyMission(mission);setSelectedMap(mission.mapNumber);setChallenge(mission.challengeId);setBattleKey(v=>v+1);setScreen('battle')},")
+          rep(path,"exit=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds.space.highestMap??1)));setScreen('campaign')},next=map=>{clearActiveDaily();setSelectedMap(map);setEraChallenge('space',challenge);setBattleKey(v=>v+1);setScreen('battle')},", "exit=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds.space.highestMap??1)));setScreen('campaign')},next=map=>{clearBattleCheckpoint();setResumeCheckpoint(null);clearActiveDaily();setSelectedMap(map);setEraChallenge('space',challenge);setBattleKey(v=>v+1);setScreen('battle')},")
+          rep(path,"<SpaceBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next}/>", "<SpaceBattleV2 key={`${selectedMap}-${challenge}-${battleKey}`} mapNumber={selectedMap} modeId={challenge} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next} resumeCheckpoint={resumeCheckpoint}/>")
+
+          # ---------- RIFT EXPERIENCE ----------
+          path='src/components/TimeRiftExperience.jsx'
+          rep(path,"import{loadSave,persistSave}from'../core/save.js';", "import{loadSave,persistSave}from'../core/save.js';\nimport{clearBattleCheckpoint,loadBattleCheckpoint}from'../core/battleCheckpoint.js';")
+          rep(path,"export function TimeRiftExperience({onSwitchWorld}){const[save,setSave]=useState(()=>loadSave()),world=save.worlds['time-rift'],[screen,setScreen]=useState('campaign'),[selectedMap,setSelectedMap]=useState(()=>Math.min(12,Math.max(1,world.highestMap??1))),", "export function TimeRiftExperience({onSwitchWorld}){const[save,setSave]=useState(()=>loadSave()),world=save.worlds['time-rift'],[resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('time-rift')),[screen,setScreen]=useState(()=>world.tutorialComplete&&resumeCheckpoint?'battle':'campaign'),[selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(12,Math.max(1,world.highestMap??1))),")
+          rep(path,"const start=()=>{setBattleKey(v=>v+1);setScreen('battle')},back=()=>onSwitchWorld?.('space'),exit=()=>{setSelectedMap(Math.min(12,Math.max(1,save.worlds['time-rift'].highestMap??1)));setScreen('campaign')},next=map=>{setSelectedMap(map);setBattleKey(v=>v+1);setScreen('battle')},", "const start=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setBattleKey(v=>v+1);setScreen('battle')},back=()=>onSwitchWorld?.('space'),exit=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(12,Math.max(1,save.worlds['time-rift'].highestMap??1)));setScreen('campaign')},next=map=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(map);setBattleKey(v=>v+1);setScreen('battle')},")
+          rep(path,"<TimeRiftBattleV2 key={`${selectedMap}-${battleKey}`} mapNumber={selectedMap} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next}/>", "<TimeRiftBattleV2 key={`${selectedMap}-${battleKey}`} mapNumber={selectedMap} save={save} setSave={battleSetSave} onExit={exit} onNextMap={next} resumeCheckpoint={resumeCheckpoint}/>")
+
+          # Generic battle patch helper: imports / signatures / checkpoint saving.
+          def patch_battle(path, world, sig_old, sig_new, state_repls, ref_repls, anchor, payload, complete_old, fail_old):
+              p=Path(path); s=p.read_text()
+              imp="import{checkpointMatches,clearBattleCheckpoint,saveBattleCheckpoint}from'../core/battleCheckpoint.js';"
+              if imp not in s:
+                  first_end=s.find('\n')
+                  s=s[:first_end+1]+imp+'\n'+s[first_end+1:]
+              if sig_old not in s: raise SystemExit(f'signature missing {path}')
+              s=s.replace(sig_old,sig_new,1)
+              for old,new in state_repls:
+                  if old not in s: raise SystemExit(f'state missing {path}: {old[:80]}')
+                  s=s.replace(old,new,1)
+              for old,new in ref_repls:
+                  if old not in s: raise SystemExit(f'ref missing {path}: {old[:80]}')
+                  s=s.replace(old,new,1)
+              if anchor not in s: raise SystemExit(f'anchor missing {path}')
+              effect=("const checkpoint=checkpointMatches(resumeCheckpoint,'"+world+"',mapNumber,modeId)?resumeCheckpoint:null;" if 'const checkpoint=' not in s else '')
+              # checkpoint declaration must precede useState; inject before first state declaration marker passed via first state replacement handled separately
+              if complete_old not in s or fail_old not in s: raise SystemExit(f'finalize markers missing {path}')
+              s=s.replace(complete_old,complete_old.replace('finalized.current=true;','finalized.current=true;clearBattleCheckpoint();'),1)
+              s=s.replace(fail_old,fail_old.replace('finalized.current=true;','finalized.current=true;clearBattleCheckpoint();'),1)
+              save_effect="useEffect(()=>{const write=()=>{if(finalized.current||status==='won'||status==='lost')return;saveBattleCheckpoint("+payload+")};write();const timer=setInterval(write,900),hide=()=>write(),vis=()=>{if(document.visibilityState==='hidden')write()};window.addEventListener('pagehide',hide);document.addEventListener('visibilitychange',vis);return()=>{clearInterval(timer);window.removeEventListener('pagehide',hide);document.removeEventListener('visibilitychange',vis)}},[mapNumber,modeId,selected,selectedCell,speed,status]);"
+              s=s.replace(anchor,anchor+save_effect,1)
+              p.write_text(s)
+
+          # RETRO battle (manual checkpoint declaration before state)
+          path='src/components/RetroBattleV2.jsx'; p=Path(path); s=p.read_text()
+          s=s.replace("import React,{useEffect,useMemo,useRef,useState}from'react';", "import React,{useEffect,useMemo,useRef,useState}from'react';import{checkpointMatches,clearBattleCheckpoint,saveBattleCheckpoint}from'../core/battleCheckpoint.js';",1)
+          s=s.replace("export function RetroBattleV2({mapNumber,save,setSave,onExit,onNextMap}){", "export function RetroBattleV2({mapNumber,modeId='normal',save,setSave,onExit,onNextMap,resumeCheckpoint=null}){",1)
+          marker="const CELLS=Array.from({length:60},(_,i)=>i),START_COINS=450,MAX_HP=100;"
+          # declaration must be inside function, after unlocked expression and before state
+          old="unlocked=useMemo(()=>retroUnlockedTowerIds(retro),[retro.completedMap,retro.cartridges]);const[coins,setCoins]=useState(START_COINS)"
+          new="unlocked=useMemo(()=>retroUnlockedTowerIds(retro),[retro.completedMap,retro.cartridges]);const checkpoint=checkpointMatches(resumeCheckpoint,'retro',mapNumber,modeId)?resumeCheckpoint:null;const[coins,setCoins]=useState(()=>checkpoint?.coins??START_COINS)"
+          if old not in s: raise SystemExit('retro state root missing'); s=s.replace(old,new,1)
+          pairs=[("[lives,setLives]=useState(3)","[lives,setLives]=useState(()=>checkpoint?.lives??3)"),("[baseHp,setBaseHp]=useState(MAX_HP)","[baseHp,setBaseHp]=useState(()=>checkpoint?.baseHp??MAX_HP)"),("[wave,setWave]=useState(1)","[wave,setWave]=useState(()=>checkpoint?.wave??1)"),("[selected,setSelected]=useState('pixel-blaster')","[selected,setSelected]=useState(()=>checkpoint?.selected??'pixel-blaster')"),("[placed,setPlaced]=useState({})","[placed,setPlaced]=useState(()=>checkpoint?.placed??{})"),("[selectedCell,setSelectedCell]=useState(null)","[selectedCell,setSelectedCell]=useState(()=>checkpoint?.selectedCell??null)"),("[enemies,setEnemies]=useState([])","[enemies,setEnemies]=useState(()=>checkpoint?.enemies??[])"),("[running,setRunning]=useState(false)","[running,setRunning]=useState(()=>Boolean(checkpoint?.running))"),("[paused,setPaused]=useState(false)","[paused,setPaused]=useState(()=>Boolean(checkpoint?.running||checkpoint?.paused))"),("[speed,setSpeed]=useState(1)","[speed,setSpeed]=useState(()=>checkpoint?.speed??1)"),("[combo,setCombo]=useState(1)","[combo,setCombo]=useState(()=>checkpoint?.combo??1)"),("[score,setScore]=useState(0)","[score,setScore]=useState(()=>checkpoint?.score??0)"),("[message,setMessage]=useState('⭐ Bonus pads boost range, damage and attack speed. Build, then start Wave 1.')","[message,setMessage]=useState(()=>checkpoint?'Battle restored! Tap ▶ when ready.':'⭐ Bonus pads boost range, damage and attack speed. Build, then start Wave 1.')"),("[status,setStatus]=useState('ready')","[status,setStatus]=useState(()=>checkpoint?.status??'ready')")]
+          for a,b in pairs:
+              if a not in s: raise SystemExit('retro missing '+a); s=s.replace(a,b,1)
+          for a,b in [("queueRef=useRef([])","queueRef=useRef(checkpoint?.queue??[])"),("cooldowns=useRef({})","cooldowns=useRef(checkpoint?.cooldowns??{})"),("killsRef=useRef(0)","killsRef=useRef(checkpoint?.kills??0)"),("bestComboRef=useRef(combo)","bestComboRef=useRef(checkpoint?.bestCombo??combo)")]:
+              if a not in s: raise SystemExit('retro ref '+a); s=s.replace(a,b,1)
+          anchor="useEffect(()=>{waveRef.current=wave},[wave]);"
+          payload="{worldId:'retro',mapNumber,modeId,coins:coinsRef.current,lives:livesRef.current,baseHp:hpRef.current,wave:waveRef.current,selected,placed:placedRef.current,selectedCell,enemies:enemiesRef.current,running:runningRef.current,paused:pausedRef.current,speed,combo:comboRef.current,bestCombo:bestComboRef.current,score:scoreRef.current,status,kills:killsRef.current,queue:queueRef.current,cooldowns:cooldowns.current}"
+          effect="useEffect(()=>{const write=()=>{if(finalized.current||status==='won'||status==='lost')return;saveBattleCheckpoint("+payload+")};write();const timer=setInterval(write,900),hide=()=>write(),vis=()=>{if(document.visibilityState==='hidden')write()};window.addEventListener('pagehide',hide);document.addEventListener('visibilitychange',vis);return()=>{clearInterval(timer);window.removeEventListener('pagehide',hide);document.removeEventListener('visibilitychange',vis)}},[mapNumber,modeId,selected,selectedCell,speed,status]);"
+          if anchor not in s: raise SystemExit('retro anchor'); s=s.replace(anchor,anchor+effect,1)
+          s=s.replace("const complete=()=>{if(finalized.current)return;finalized.current=true;", "const complete=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          s=s.replace("const fail=()=>{if(finalized.current)return;finalized.current=true;", "const fail=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          p.write_text(s)
+
+          # FUTURE battle
+          path='src/components/FutureBattleV2.jsx'; p=Path(path); s=p.read_text()
+          s=s.replace("import React,{useEffect,useMemo,useRef,useState}from'react';", "import React,{useEffect,useMemo,useRef,useState}from'react';\nimport{checkpointMatches,clearBattleCheckpoint,saveBattleCheckpoint}from'../core/battleCheckpoint.js';",1)
+          s=s.replace("export function FutureBattleV2({mapNumber,save,setSave,onExit,onNextMap}){", "export function FutureBattleV2({mapNumber,modeId='normal',save,setSave,onExit,onNextMap,resumeCheckpoint=null}){",1)
+          old="available=useMemo(()=>unlockedFutureTowerIds(world.completedMap),[world.completedMap]);\n const[credits,setCredits]=useState(START_CREDITS)"
+          new="available=useMemo(()=>unlockedFutureTowerIds(world.completedMap),[world.completedMap]);\n const checkpoint=checkpointMatches(resumeCheckpoint,'future',mapNumber,modeId)?resumeCheckpoint:null;\n const[credits,setCredits]=useState(()=>checkpoint?.credits??START_CREDITS)"
+          if old not in s: raise SystemExit('future root'); s=s.replace(old,new,1)
+          pairs=[("[shield,setShield]=useState(BASE_SHIELD)","[shield,setShield]=useState(()=>checkpoint?.shield??BASE_SHIELD)"),("[core,setCore]=useState(MAX_CORE)","[core,setCore]=useState(()=>checkpoint?.core??MAX_CORE)"),("[wave,setWave]=useState(1)","[wave,setWave]=useState(()=>checkpoint?.wave??1)"),("[selected,setSelected]=useState('pulse-turret')","[selected,setSelected]=useState(()=>checkpoint?.selected??'pulse-turret')"),("[placed,setPlaced]=useState({})","[placed,setPlaced]=useState(()=>checkpoint?.placed??{})"),("[selectedCell,setSelectedCell]=useState(null)","[selectedCell,setSelectedCell]=useState(()=>checkpoint?.selectedCell??null)"),("[enemies,setEnemies]=useState([])","[enemies,setEnemies]=useState(()=>checkpoint?.enemies??[])"),("[running,setRunning]=useState(false)","[running,setRunning]=useState(()=>Boolean(checkpoint?.running))"),("[paused,setPaused]=useState(false)","[paused,setPaused]=useState(()=>Boolean(checkpoint?.running||checkpoint?.paused))"),("[speed,setSpeed]=useState(1)","[speed,setSpeed]=useState(()=>checkpoint?.speed??1)"),("[message,setMessage]=useState(()=>mapGridMessage(mapNumber))","[message,setMessage]=useState(()=>checkpoint?'Battle restored! Tap ▶ when ready.':mapGridMessage(mapNumber))"),("[status,setStatus]=useState('ready')","[status,setStatus]=useState(()=>checkpoint?.status??'ready')")]
+          for a,b in pairs:
+              if a not in s: raise SystemExit('future '+a); s=s.replace(a,b,1)
+          for a,b in [("queue=useRef([])","queue=useRef(checkpoint?.queue??[])"),("cooldowns=useRef({})","cooldowns=useRef(checkpoint?.cooldowns??{})"),("killsRef=useRef(0)","killsRef=useRef(checkpoint?.kills??0)"),("empRef=useRef(0)","empRef=useRef(checkpoint?.emp??0)")]:
+              if a not in s: raise SystemExit('future ref '+a); s=s.replace(a,b,1)
+          anchor="useEffect(()=>{waveRef.current=wave},[wave]);"
+          effect="useEffect(()=>{const write=()=>{if(finalized.current||status==='won'||status==='lost')return;saveBattleCheckpoint({worldId:'future',mapNumber,modeId,credits:creditsRef.current,shield:shieldRef.current,core:coreRef.current,wave:waveRef.current,selected,placed:placedRef.current,selectedCell,enemies:enemiesRef.current,running:runRef.current,paused:pauseRef.current,speed,status,kills:killsRef.current,queue:queue.current,cooldowns:cooldowns.current,emp:empRef.current})};write();const timer=setInterval(write,900),hide=()=>write(),vis=()=>{if(document.visibilityState==='hidden')write()};window.addEventListener('pagehide',hide);document.addEventListener('visibilitychange',vis);return()=>{clearInterval(timer);window.removeEventListener('pagehide',hide);document.removeEventListener('visibilitychange',vis)}},[mapNumber,modeId,selected,selectedCell,speed,status]);"
+          if anchor not in s: raise SystemExit('future anchor'); s=s.replace(anchor,anchor+effect,1)
+          s=s.replace("const complete=()=>{if(finalized.current)return;finalized.current=true;", "const complete=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          s=s.replace("const fail=()=>{if(finalized.current)return;finalized.current=true;", "const fail=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          p.write_text(s)
+
+          # SPACE battle
+          path='src/components/SpaceBattleV2.jsx'; p=Path(path); s=p.read_text()
+          s=s.replace("import React,{useEffect,useMemo,useRef,useState}from'react';", "import React,{useEffect,useMemo,useRef,useState}from'react';import{checkpointMatches,clearBattleCheckpoint,saveBattleCheckpoint}from'../core/battleCheckpoint.js';",1)
+          s=s.replace("export function SpaceBattleV2({mapNumber,save,setSave,onExit,onNextMap}){", "export function SpaceBattleV2({mapNumber,modeId='normal',save,setSave,onExit,onNextMap,resumeCheckpoint=null}){",1)
+          old="unlocked=useMemo(()=>unlockedSpaceTowerIds(world.completedMap),[world.completedMap]);const[matter,setMatter]=useState(()=>startingMatter(mapNumber))"
+          new="unlocked=useMemo(()=>unlockedSpaceTowerIds(world.completedMap),[world.completedMap]);const checkpoint=checkpointMatches(resumeCheckpoint,'space',mapNumber,modeId)?resumeCheckpoint:null;const[matter,setMatter]=useState(()=>checkpoint?.matter??startingMatter(mapNumber))"
+          if old not in s: raise SystemExit('space root'); s=s.replace(old,new,1)
+          pairs=[("[energy,setEnergy]=useState(0)","[energy,setEnergy]=useState(()=>checkpoint?.energy??0)"),("[shield,setShield]=useState(BASE_SHIELD)","[shield,setShield]=useState(()=>checkpoint?.shield??BASE_SHIELD)"),("[colony,setColony]=useState(MAX_COLONY)","[colony,setColony]=useState(()=>checkpoint?.colony??MAX_COLONY)"),("[wave,setWave]=useState(1)","[wave,setWave]=useState(()=>checkpoint?.wave??1)"),("[selected,setSelected]=useState('ion-cannon')","[selected,setSelected]=useState(()=>checkpoint?.selected??'ion-cannon')"),("[placed,setPlaced]=useState({})","[placed,setPlaced]=useState(()=>checkpoint?.placed??{})"),("[selectedCell,setSelectedCell]=useState(null)","[selectedCell,setSelectedCell]=useState(()=>checkpoint?.selectedCell??null)"),("[enemies,setEnemies]=useState([])","[enemies,setEnemies]=useState(()=>checkpoint?.enemies??[])"),("[running,setRunning]=useState(false)","[running,setRunning]=useState(()=>Boolean(checkpoint?.running))"),("[paused,setPaused]=useState(false)","[paused,setPaused]=useState(()=>Boolean(checkpoint?.running||checkpoint?.paused))"),("[speed,setSpeed]=useState(1)","[speed,setSpeed]=useState(()=>checkpoint?.speed??1)"),("[message,setMessage]=useState(()=>mapNumber===16?'REMOTE COLONY: Matter reserves are reduced. ✨ Anomalies empower defenses.':'✨ Anomaly cells boost range, damage and attack speed.')","[message,setMessage]=useState(()=>checkpoint?'Battle restored! Tap ▶ when ready.':mapNumber===16?'REMOTE COLONY: Matter reserves are reduced. ✨ Anomalies empower defenses.':'✨ Anomaly cells boost range, damage and attack speed.')"),("[status,setStatus]=useState('ready')","[status,setStatus]=useState(()=>checkpoint?.status??'ready')")]
+          for a,b in pairs:
+              if a not in s: raise SystemExit('space '+a); s=s.replace(a,b,1)
+          for a,b in [("queue=useRef([])","queue=useRef(checkpoint?.queue??[])"),("cooldowns=useRef({})","cooldowns=useRef(checkpoint?.cooldowns??{})"),("killsRef=useRef(0)","killsRef=useRef(checkpoint?.kills??0)")]:
+              if a not in s: raise SystemExit('space ref '+a); s=s.replace(a,b,1)
+          anchor="useEffect(()=>{waveRef.current=wave},[wave]);"
+          effect="useEffect(()=>{const write=()=>{if(finalized.current||status==='won'||status==='lost')return;saveBattleCheckpoint({worldId:'space',mapNumber,modeId,matter:matterRef.current,energy:energyRef.current,shield:shieldRef.current,colony:colonyRef.current,wave:waveRef.current,selected,placed:placedRef.current,selectedCell,enemies:enemiesRef.current,running:runRef.current,paused:pauseRef.current,speed,status,kills:killsRef.current,queue:queue.current,cooldowns:cooldowns.current})};write();const timer=setInterval(write,900),hide=()=>write(),vis=()=>{if(document.visibilityState==='hidden')write()};window.addEventListener('pagehide',hide);document.addEventListener('visibilitychange',vis);return()=>{clearInterval(timer);window.removeEventListener('pagehide',hide);document.removeEventListener('visibilitychange',vis)}},[mapNumber,modeId,selected,selectedCell,speed,status]);"
+          if anchor not in s: raise SystemExit('space anchor'); s=s.replace(anchor,anchor+effect,1)
+          s=s.replace("const complete=()=>{if(finalized.current)return;finalized.current=true;", "const complete=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          s=s.replace("const fail=()=>{if(finalized.current)return;finalized.current=true;", "const fail=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          p.write_text(s)
+
+          # TIME RIFT battle
+          path='src/components/TimeRiftBattleV2.jsx'; p=Path(path); s=p.read_text()
+          s=s.replace("import React,{useEffect,useMemo,useRef,useState}from'react';", "import React,{useEffect,useMemo,useRef,useState}from'react';import{checkpointMatches,clearBattleCheckpoint,saveBattleCheckpoint}from'../core/battleCheckpoint.js';",1)
+          s=s.replace("export function TimeRiftBattleV2({mapNumber,save,setSave,onExit,onNextMap}){", "export function TimeRiftBattleV2({mapNumber,save,setSave,onExit,onNextMap,resumeCheckpoint=null}){",1)
+          old="total=useMemo(()=>pathLength(layout.path),[layout]);const[currency,setCurrency]=useState(START)"
+          new="total=useMemo(()=>pathLength(layout.path),[layout]);const modeId='normal',checkpoint=checkpointMatches(resumeCheckpoint,'time-rift',mapNumber,modeId)?resumeCheckpoint:null;const[currency,setCurrency]=useState(()=>checkpoint?.currency??START)"
+          if old not in s: raise SystemExit('rift root'); s=s.replace(old,new,1)
+          pairs=[("[stability,setStability]=useState(MAX_STABILITY)","[stability,setStability]=useState(()=>checkpoint?.stability??MAX_STABILITY)"),("[wave,setWave]=useState(1)","[wave,setWave]=useState(()=>checkpoint?.wave??1)"),("[selected,setSelected]=useState(riftTowers[0].id)","[selected,setSelected]=useState(()=>checkpoint?.selected??riftTowers[0].id)"),("[placed,setPlaced]=useState({})","[placed,setPlaced]=useState(()=>checkpoint?.placed??{})"),("[selectedCell,setSelectedCell]=useState(null)","[selectedCell,setSelectedCell]=useState(()=>checkpoint?.selectedCell??null)"),("[enemies,setEnemies]=useState([])","[enemies,setEnemies]=useState(()=>checkpoint?.enemies??[])"),("[running,setRunning]=useState(false)","[running,setRunning]=useState(()=>Boolean(checkpoint?.running))"),("[paused,setPaused]=useState(false)","[paused,setPaused]=useState(()=>Boolean(checkpoint?.running||checkpoint?.paused))"),("[speed,setSpeed]=useState(1)","[speed,setSpeed]=useState(()=>checkpoint?.speed??1)"),("[message,setMessage]=useState('Choose defenses from across time.')","[message,setMessage]=useState(()=>checkpoint?'Battle restored! Tap ▶ when ready.':'Choose defenses from across time.')"),("[status,setStatus]=useState('ready')","[status,setStatus]=useState(()=>checkpoint?.status??'ready')"),("[kills,setKills]=useState(0)","[kills,setKills]=useState(()=>checkpoint?.kills??0)"),("[bossPhase,setBossPhase]=useState(0)","[bossPhase,setBossPhase]=useState(()=>checkpoint?.bossPhase??0)")]
+          for a,b in pairs:
+              if a not in s: raise SystemExit('rift '+a); s=s.replace(a,b,1)
+          for a,b in [("queue=useRef([])","queue=useRef(checkpoint?.queue??[])"),("cooldowns=useRef({})","cooldowns=useRef(checkpoint?.cooldowns??{})"),("killsRef=useRef(0)","killsRef=useRef(checkpoint?.kills??0)"),("phaseEventRef=useRef({2:false,3:false})","phaseEventRef=useRef(checkpoint?.phaseEvents??{2:false,3:false})"),("collapseRef=useRef(0)","collapseRef=useRef(checkpoint?.collapse??0)")]:
+              if a not in s: raise SystemExit('rift ref '+a); s=s.replace(a,b,1)
+          anchor="useEffect(()=>{waveRef.current=wave},[wave]);"
+          effect="useEffect(()=>{const write=()=>{if(finalized.current||status==='won'||status==='lost')return;saveBattleCheckpoint({worldId:'time-rift',mapNumber,modeId,currency:currencyRef.current,stability:stabilityRef.current,wave:waveRef.current,selected,placed:placedRef.current,selectedCell,enemies:enemiesRef.current,running:runRef.current,paused:pauseRef.current,speed,status,kills:killsRef.current,bossPhase,queue:queue.current,cooldowns:cooldowns.current,phaseEvents:phaseEventRef.current,collapse:collapseRef.current})};write();const timer=setInterval(write,900),hide=()=>write(),vis=()=>{if(document.visibilityState==='hidden')write()};window.addEventListener('pagehide',hide);document.addEventListener('visibilitychange',vis);return()=>{clearInterval(timer);window.removeEventListener('pagehide',hide);document.removeEventListener('visibilitychange',vis)}},[mapNumber,selected,selectedCell,speed,status,bossPhase]);"
+          if anchor not in s: raise SystemExit('rift anchor'); s=s.replace(anchor,anchor+effect,1)
+          s=s.replace("const complete=()=>{if(finalized.current)return;finalized.current=true;", "const complete=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          s=s.replace("const fail=()=>{if(finalized.current)return;finalized.current=true;", "const fail=()=>{if(finalized.current)return;finalized.current=true;clearBattleCheckpoint();",1)
+          p.write_text(s)
+          PY
+      - run: npm install
+      - run: npm run build
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components
+          git diff --cached --quiet || git commit -m "Add battle autosave and resume to every era"
+          git push
