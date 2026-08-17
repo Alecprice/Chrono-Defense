@@ -16,6 +16,7 @@ import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
 import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
 import { OptionalFeatureBoundary } from '../components/OptionalFeatureBoundary.jsx';
 import { StoneAgeRouteGuard } from '../components/StoneAgeRouteGuard.jsx';
+import { DeterministicEnemyRouteBridge } from '../components/DeterministicEnemyRouteBridge.jsx';
 import { JuniorCoach } from '../components/JuniorCoach.jsx';
 import { JuniorRewardBridge } from '../components/JuniorRewardBridge.jsx';
 import { KidSafeActionBridge } from '../components/KidSafeActionBridge.jsx';
@@ -48,6 +49,7 @@ export function App() {
         <Optional name="ShopAffordabilityBridge"><ShopAffordabilityBridge /></Optional>
         <Optional name="MapObjectiveBridge"><MapObjectiveBridge /></Optional>
         <Optional name="StoneAgeRouteGuard"><StoneAgeRouteGuard /></Optional>
+        <Optional name="DeterministicEnemyRouteBridge"><DeterministicEnemyRouteBridge /></Optional>
         <Optional name="JuniorCoach"><JuniorCoach /></Optional>
         <Optional name="JuniorRewardBridge"><JuniorRewardBridge /></Optional>
         <Optional name="KidSafeActionBridge"><KidSafeActionBridge /></Optional>
