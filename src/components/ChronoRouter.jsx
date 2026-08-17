@@ -9,8 +9,10 @@ import{EraSwitcher}from'./EraSwitcher.jsx';
 import{CombatJuiceBridge}from'./CombatJuiceBridge.jsx';
 import{WaveStatusBridge}from'./WaveStatusBridge.jsx';
 import{RangePreviewBridge}from'./RangePreviewBridge.jsx';
+import{OptionalFeatureBoundary}from'./OptionalFeatureBoundary.jsx';
 
 function worldFromHash(){const value=(globalThis.location?.hash||'').replace('#','');return['stone-age','retro','future','space','time-rift'].includes(value)?value:'stone-age';}
+const Optional=({name,children})=><OptionalFeatureBoundary name={name}>{children}</OptionalFeatureBoundary>;
 export function ChronoRouter(){
  const[world,setWorld]=useState(worldFromHash);
  useEffect(()=>{const change=()=>setWorld(worldFromHash());window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change)},[]);
@@ -20,5 +22,5 @@ export function ChronoRouter(){
  if(world==='future')content=<FutureExperience onSwitchWorld={switchWorld}/>;
  if(world==='space')content=<SpaceExperience onSwitchWorld={switchWorld}/>;
  if(world==='time-rift')content=<TimeRiftExperience onSwitchWorld={switchWorld}/>;
- return <>{content}<CombatJuiceBridge/><WaveStatusBridge/><RangePreviewBridge/><EraSwitcher active={world} onSwitch={switchWorld}/></>;
+ return <>{content}<Optional name="CombatJuiceBridge"><CombatJuiceBridge/></Optional><Optional name="WaveStatusBridge"><WaveStatusBridge/></Optional><Optional name="RangePreviewBridge"><RangePreviewBridge/></Optional><Optional name="EraSwitcher"><EraSwitcher active={world} onSwitch={switchWorld}/></Optional></>;
 }
