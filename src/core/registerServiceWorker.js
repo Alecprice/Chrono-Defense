@@ -13,7 +13,10 @@ export function registerServiceWorker(){
           const worker=registration.installing;if(!worker)return;
           worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)announceUpdate(registration);if(worker.state==='activated')sendPrecache()});
         });
-        navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='CHRONO_OFFLINE_READY')window.dispatchEvent(new CustomEvent('chrono:offline-ready',{detail:{cache:event.data?.cache??null}}))});
+        navigator.serviceWorker.addEventListener('message',event=>{
+          if(event.data?.type==='CHRONO_OFFLINE_READY')window.dispatchEvent(new CustomEvent('chrono:offline-ready',{detail:{cache:event.data?.cache??null}}));
+          if(event.data?.type==='CHRONO_OFFLINE_PROGRESS')window.dispatchEvent(new CustomEvent('chrono:offline-progress',{detail:{done:event.data?.done??0,total:event.data?.total??0,cache:event.data?.cache??null}}));
+        });
         if(registration.active)sendPrecache();
       }catch{window.dispatchEvent(new CustomEvent('chrono:offline-preload-unavailable'))}
     },{once:true});
