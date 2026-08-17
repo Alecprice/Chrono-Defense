@@ -16,6 +16,7 @@ import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
 import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
 import { StoneAgeRouteGuard } from '../components/StoneAgeRouteGuard.jsx';
 import { JuniorCoach } from '../components/JuniorCoach.jsx';
+import { JuniorRewardBridge } from '../components/JuniorRewardBridge.jsx';
 
 export function App() {
   return (
@@ -36,6 +37,7 @@ export function App() {
         <MapObjectiveBridge />
         <StoneAgeRouteGuard />
         <JuniorCoach />
+        <JuniorRewardBridge />
       </FullscreenShell>
     </AppErrorBoundary>
   );
