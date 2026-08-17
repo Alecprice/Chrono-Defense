@@ -5,9 +5,11 @@ const canonical=url=>new URL(url,self.location.origin).href;
 const requestFor=url=>new Request(canonical(url),{cache:'reload'});
 let precachePromise=null;
 async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
-async function isOfflineReady(){try{const cache=await caches.open(CACHE);const marker=await cache.match(canonical(READY));if(!marker)return false;const data=await marker.clone().json();for(const url of data.urls??[]){if(!(await cache.match(canonical(url))))return false}return true}catch{return false}}
+async function readyData(){try{const cache=await caches.open(CACHE);const marker=await cache.match(canonical(READY));if(!marker)return null;const data=await marker.clone().json();for(const url of data.urls??[]){if(!(await cache.match(canonical(url))))return null}return data}catch{return null}}
+async function isOfflineReady(){return Boolean(await readyData())}
 async function cacheOne(cache,url){const request=requestFor(url);const response=await fetch(request);if(!response.ok)throw new Error(`Failed ${url}: ${response.status}`);await cache.put(canonical(url),response.clone())}
 async function runPrecache(target=null){
+  const existing=await readyData();if(existing){await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done:existing.urls.length,total:existing.urls.length,cache:CACHE});return true}
   const cache=await caches.open(CACHE);
   await cache.delete(canonical(READY));
   try{
