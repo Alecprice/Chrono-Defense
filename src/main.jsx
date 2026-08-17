@@ -48,6 +48,7 @@ import './styles/junior-rewards.css';
 import './styles/resume-battle.css';
 import './styles/kid-safe-actions.css';
 import './styles/junior-training.css';
+import './styles/junior-era-progression.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
