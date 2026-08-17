@@ -199,7 +199,7 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
 
   useEffect(() => {
     const writeCheckpoint = () => {
-      if (status === 'won' || status === 'lost') return;
+      if (finalizedRef.current || status === 'won' || status === 'lost') return;
       saveBattleCheckpoint({worldId:'stone-age',mapNumber,modeId,resources:resourcesRef.current,villageHp:villageRef.current,wave:waveRef.current,selected,selectedPlaced,placed:placedRef.current,enemies:enemiesRef.current,running:runningRef.current,paused:pausedRef.current,speed,status,kills,queue:queueRef.current,cooldowns:cooldownRef.current,battleStats:battleStatsRef.current,oneTowerChoice:oneTowerChoiceRef.current,actionCooldown,caveSealed});
     };
     writeCheckpoint();
