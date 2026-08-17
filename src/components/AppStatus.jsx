@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const OFFLINE_CACHE_VERSION='chrono-defense-shell-v29';
-const OFFLINE_READY_SENTINEL='/__chrono-offline-ready-v29';
+const OFFLINE_CACHE_VERSION='chrono-defense-shell-v30';
+const OFFLINE_READY_SENTINEL='/__chrono-offline-ready-v30';
 const OFFLINE_READY_KEY='chrono-defense-offline-ready-cache';
 function storedOfflineReady(){try{return localStorage.getItem(OFFLINE_READY_KEY)===OFFLINE_CACHE_VERSION}catch{return false}}
 
