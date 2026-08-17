@@ -1,5 +1,5 @@
-const CACHE='chrono-defense-shell-v30';
-const READY='/__chrono-offline-ready-v30';
+const CACHE='chrono-defense-shell-v31';
+const READY='/__chrono-offline-ready-v31';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 const canonical=url=>new URL(url,self.location.origin).href;
 const requestFor=url=>new Request(canonical(url),{cache:'reload'});
