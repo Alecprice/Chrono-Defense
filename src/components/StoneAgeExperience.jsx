@@ -30,25 +30,6 @@ export function StoneAgeExperience({onSwitchWorld}) {
   useEffect(()=>persistSave(save),[save]);
 
   useEffect(()=>{
-    const root=document.documentElement;
-    root.classList.toggle('chrono-reduced-motion',Boolean(save.settings?.reducedMotion));
-    root.classList.toggle('chrono-large-ui',Boolean(save.settings?.largeUI));
-    root.classList.toggle('chrono-high-contrast',Boolean(save.settings?.highContrast));
-    root.dataset.effects=save.settings?.effects??'high';
-    return()=>{
-      root.classList.remove('chrono-reduced-motion','chrono-large-ui','chrono-high-contrast');
-      delete root.dataset.effects;
-    };
-  },[save.settings]);
-
-  useEffect(()=>{
-    if(save.settings?.haptics===false||typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return undefined;
-    const pulse=event=>{const button=event.target?.closest?.('button');if(button&&!button.disabled)try{navigator.vibrate(8)}catch{}};
-    document.addEventListener('pointerup',pulse,{passive:true});
-    return()=>document.removeEventListener('pointerup',pulse);
-  },[save.settings?.haptics]);
-
-  useEffect(()=>{
     const mode=stoneAgeModes.find(item=>item.id===selectedMode);
     if(mode&&!mode.unlock(stone)) setSelectedMode('normal');
   },[selectedMode,stone.completedMap,stone.totems]);
@@ -115,8 +96,8 @@ export function StoneAgeExperience({onSwitchWorld}) {
     />}
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
-      <div className="achievement-book" onClick={event=>event.stopPropagation()}>
-        <div className="achievement-book-head"><div><small>STONE AGE MASTERY</small><h2>Achievements</h2></div><b>{unlockedSet.size}/100</b><button onClick={()=>setShowAchievements(false)}>×</button></div>
+      <div className="achievement-book" role="dialog" aria-modal="true" aria-labelledby="stone-achievement-title" onClick={event=>event.stopPropagation()}>
+        <div className="achievement-book-head"><div><small>STONE AGE MASTERY</small><h2 id="stone-achievement-title">Achievements</h2></div><b>{unlockedSet.size}/100</b><button aria-label="Close achievements" onClick={()=>setShowAchievements(false)}>×</button></div>
         <div className="achievement-grid">{stoneAgeAchievements.map(item=>{
           const unlocked=unlockedSet.has(item.id);
           return <div key={item.id} className={`achievement-card ${unlocked?'unlocked':'locked'}`}><span>{unlocked?item.icon:'?'}</span><div><b>{unlocked?item.name:'Hidden Challenge'}</b><small>{unlocked?item.description:'Keep playing Stone Age to discover this achievement.'}</small></div></div>
@@ -129,6 +110,6 @@ export function StoneAgeExperience({onSwitchWorld}) {
     {showStats&&<StoneAgeStats stoneSave={stone} onClose={()=>setShowStats(false)}/>} 
     {showSaveTools&&<SaveManager save={save} onReplace={replaceSave} onClose={()=>setShowSaveTools(false)}/>} 
 
-    {achievementToast&&<div className="achievement-toast"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
+    {achievementToast&&<div className="achievement-toast" role="status" aria-live="polite"><span>{achievementToast.icon}</span><div><small>ACHIEVEMENT UNLOCKED</small><b>{achievementToast.name}</b><p>{achievementToast.description}</p></div></div>}
   </>;
 }
