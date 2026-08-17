@@ -1,0 +1,95 @@
+import { test, expect } from '@playwright/test';
+
+const saveKey = 'chrono-defense-save-v1';
+const readySave = {
+  version: 1,
+  activeWorld: 'stone-age',
+  worlds: {
+    'stone-age': { tutorialComplete: true, highestMap: 1, completedMap: 0, totems: 0, mastery: 0, best: {}, achievements: [], stats: {} },
+    retro: {}, future: {}, space: {}, 'time-rift': {},
+  },
+  settings: { juniorMode: false, sound: false, music: false, haptics: false },
+};
+
+async function setReadySave(page) {
+  await page.addInitScript(({ key, value }) => {
+    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem('chrono-welcome-seen', '1');
+  }, { key: saveKey, value: readySave });
+}
+
+async function enterStoneBattle(page) {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
+  await page.getByRole('button', { name: /Enter Battle/ }).click();
+  await expect(page.locator('.battle-screen')).toBeVisible();
+}
+
+test('first-run welcome and tutorial hand off to campaign without blank screen', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  const welcome = page.getByRole('button', { name: /Let’s Play!/ });
+  if (await welcome.isVisible().catch(() => false)) await welcome.click();
+  await expect(page.getByRole('heading', { name: /Protect Your Village!/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Skip' }).click();
+  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
+  await expect(page.locator('body')).not.toHaveText('');
+  expect(errors).toEqual([]);
+});
+
+test('clicking the village cannot place or replace a tower', async ({ page }) => {
+  await setReadySave(page);
+  await enterStoneBattle(page);
+  await page.getByRole('button', { name: /Rock Thrower/ }).click();
+  const before = await page.locator('.cell.occupied').count();
+  await page.locator('.village').dispatchEvent('click');
+  await page.waitForTimeout(150);
+  const after = await page.locator('.cell.occupied').count();
+  expect(after).toBe(before);
+  await expect(page.locator('.village')).toContainText('Village');
+});
+
+test('touch orientation blocks in portrait and resumes cleanly in landscape', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await setReadySave(page);
+  await enterStoneBattle(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('heading', { name: /Rotate to landscape/ })).toBeVisible();
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect(page.getByRole('heading', { name: /Rotate to landscape/ })).toBeHidden();
+  await expect(page.locator('.battle-screen')).toBeVisible();
+  expect(errors).toEqual([]);
+  await context.close();
+});
+
+test('mid-wave refresh restores unfinished battle instead of losing it', async ({ page }) => {
+  await setReadySave(page);
+  await enterStoneBattle(page);
+  await page.getByRole('button', { name: /Rock Thrower/ }).click();
+  const buildCell = page.locator('.cell:not(.path):not(.occupied)').first();
+  await buildCell.click();
+  await expect(page.locator('.cell.occupied')).toHaveCount(1);
+  await page.getByRole('button', { name: /Start Wave 1/ }).click();
+  await page.waitForTimeout(1200);
+  await page.reload();
+  await expect(page.getByText(/We saved your game!/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Continue Battle/ })).toBeVisible();
+});
+
+test('fully precached build reloads while browser is offline', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await setReadySave(page);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
+  await expect(page.getByText(/Offline Ready/)).toBeVisible({ timeout: 20000 });
+  await context.setOffline(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
+  await context.setOffline(false);
+  await context.close();
+});
