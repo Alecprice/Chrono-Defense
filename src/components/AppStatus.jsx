@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const OFFLINE_CACHE_VERSION='chrono-defense-shell-v18';
+const OFFLINE_CACHE_VERSION='chrono-defense-shell-v26';
 const OFFLINE_READY_KEY='chrono-defense-offline-ready-cache';
 function storedOfflineReady(){try{return localStorage.getItem(OFFLINE_READY_KEY)===OFFLINE_CACHE_VERSION}catch{return false}}
 
@@ -11,6 +11,7 @@ export function AppStatus(){
   const [updateRegistration,setUpdateRegistration]=useState(null);
   const [offlineReady,setOfflineReady]=useState(storedOfflineReady);
   const [offlineLoading,setOfflineLoading]=useState(()=>!storedOfflineReady());
+  const [offlineProgress,setOfflineProgress]=useState(0);
   const [saved,setSaved]=useState(true);
   const saveTimer=useRef(null);
 
@@ -20,8 +21,9 @@ export function AppStatus(){
     const onPrompt=event=>{event.preventDefault();setInstallEvent(event)};
     const onInstalled=()=>{setInstalled(true);setInstallEvent(null)};
     const onUpdate=event=>setUpdateRegistration(event.detail?.registration??null);
-    const onPreloadStart=()=>{if(!storedOfflineReady()){setOfflineLoading(true);setOfflineReady(false)}};
-    const onOfflineReady=event=>{setOfflineLoading(false);setOfflineReady(true);try{localStorage.setItem(OFFLINE_READY_KEY,event.detail?.cache??OFFLINE_CACHE_VERSION)}catch{}};
+    const onPreloadStart=()=>{if(!storedOfflineReady()){setOfflineLoading(true);setOfflineReady(false);setOfflineProgress(0)}};
+    const onOfflineProgress=event=>{const done=Number(event.detail?.done??0),total=Number(event.detail?.total??0);setOfflineLoading(true);setOfflineReady(false);if(total>0)setOfflineProgress(Math.max(0,Math.min(100,Math.round(done/total*100))))};
+    const onOfflineReady=event=>{setOfflineLoading(false);setOfflineProgress(100);setOfflineReady(true);try{localStorage.setItem(OFFLINE_READY_KEY,event.detail?.cache??OFFLINE_CACHE_VERSION)}catch{}};
     const onOfflineUnavailable=()=>setOfflineLoading(false);
     const onSaved=()=>{setSaved(false);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(()=>setSaved(true),450)};
     window.addEventListener('online',onOnline);
@@ -30,6 +32,7 @@ export function AppStatus(){
     window.addEventListener('appinstalled',onInstalled);
     window.addEventListener('chrono:sw-update',onUpdate);
     window.addEventListener('chrono:offline-preload-start',onPreloadStart);
+    window.addEventListener('chrono:offline-progress',onOfflineProgress);
     window.addEventListener('chrono:offline-ready',onOfflineReady);
     window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);
     window.addEventListener('chrono:save',onSaved);
@@ -42,6 +45,7 @@ export function AppStatus(){
       window.removeEventListener('appinstalled',onInstalled);
       window.removeEventListener('chrono:sw-update',onUpdate);
       window.removeEventListener('chrono:offline-preload-start',onPreloadStart);
+      window.removeEventListener('chrono:offline-progress',onOfflineProgress);
       window.removeEventListener('chrono:offline-ready',onOfflineReady);
       window.removeEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);
       window.removeEventListener('chrono:save',onSaved);
@@ -55,6 +59,12 @@ export function AppStatus(){
     const choice=await installEvent.userChoice;
     if(choice?.outcome==='accepted')setInstallEvent(null);
   };
+  const downloadOffline=async()=>{
+    if(!online||!('serviceWorker'in navigator))return;
+    setOfflineLoading(true);setOfflineProgress(0);setOfflineReady(false);
+    window.dispatchEvent(new CustomEvent('chrono:offline-preload-start'));
+    try{const registration=await navigator.serviceWorker.ready;(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}catch{setOfflineLoading(false)}
+  };
   const applyUpdate=()=>{
     const worker=updateRegistration?.waiting;if(!worker)return;
     let reloaded=false;
@@ -64,7 +74,7 @@ export function AppStatus(){
 
   return <div className="app-status" aria-live="polite">
     <span className={`save-pill ${saved?'ready':'working'}`}>{saved?'💾 Saved ✓':'💾 Saving…'}</span>
-    {offlineReady?<span className="offline-ready-pill">📦 Offline Ready ✓</span>:offlineLoading?<span className="offline-loading-pill">📦 Preparing Offline…</span>:online?<span className="offline-warning-pill">⚠ Online Only</span>:null}
+    {offlineReady?<span className="offline-ready-pill">📦 Offline Ready ✓</span>:offlineLoading?<span className="offline-loading-pill">📦 Downloading {offlineProgress}%</span>:online?<button className="offline-download-pill" onClick={downloadOffline}>⬇ Download Offline</button>:null}
     {!online&&<span className="offline-pill">📴 Offline Mode</span>}
     {updateRegistration?.waiting&&<button className="update-pill" onClick={applyUpdate}>↻ Update Ready</button>}
     {installEvent&&!installed&&<button onClick={install}>＋ Install Game</button>}
