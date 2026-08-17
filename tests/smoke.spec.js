@@ -10,94 +10,20 @@ const readySave = {
   },
   settings: { juniorMode: false, sound: false, music: false, haptics: false },
 };
+async function setReadySave(page){await page.addInitScript(({key,value})=>{localStorage.setItem(key,JSON.stringify(value));localStorage.setItem('chrono-welcome-seen','1')},{key:saveKey,value:readySave})}
+async function enterStoneBattle(page){await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();await page.getByRole('button',{name:/Enter Battle/}).click();await expect(page.locator('.battle-screen')).toBeVisible()}
 
-async function setReadySave(page) {
-  await page.addInitScript(({ key, value }) => {
-    localStorage.setItem(key, JSON.stringify(value));
-    localStorage.setItem('chrono-welcome-seen', '1');
-  }, { key: saveKey, value: readySave });
-}
-
-async function enterStoneBattle(page) {
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  await page.getByRole('button', { name: /Enter Battle/ }).click();
-  await expect(page.locator('.battle-screen')).toBeVisible();
-}
-
-test('tutorial hands off to campaign without blank screen', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => localStorage.setItem('chrono-welcome-seen', '1'));
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: /Protect Your Village!/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Skip' }).click();
-  await page.waitForTimeout(400);
-  if (!(await page.locator('.campaign-screen').count())) {
-    console.log('POST_SKIP_BODY:', (await page.locator('body').innerText()).slice(0, 3000));
-    console.log('POST_SKIP_SAVE:', await page.evaluate(key => localStorage.getItem(key), saveKey));
-    console.log('POST_SKIP_ERRORS:', JSON.stringify(errors));
-  }
-  await expect(page.locator('.campaign-screen')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  expect(errors).toEqual([]);
+test('tutorial hands off to campaign without blank screen',async({page})=>{
+ const errors=[],consoleErrors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text())});
+ await page.addInitScript(()=>localStorage.setItem('chrono-welcome-seen','1'));await page.goto('/');await expect(page.getByRole('heading',{name:/Protect Your Village!/})).toBeVisible();await page.getByRole('button',{name:'Skip'}).click();await page.waitForTimeout(500);
+ if(!(await page.locator('.campaign-screen').count())){console.log('POST_SKIP_BODY:',(await page.locator('body').innerText()).slice(0,3000));console.log('POST_SKIP_SAVE:',await page.evaluate(key=>localStorage.getItem(key),saveKey));console.log('POST_SKIP_PAGE_ERRORS:',JSON.stringify(errors));console.log('POST_SKIP_CONSOLE_ERRORS:',consoleErrors.join('\n---\n'))}
+ await expect(page.locator('.campaign-screen')).toBeVisible();await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();expect(errors).toEqual([])
 });
 
-test('clicking the village cannot place or replace a tower', async ({ page }) => {
-  await setReadySave(page);
-  await enterStoneBattle(page);
-  await page.getByRole('button', { name: /Rock Thrower/ }).click();
-  const before = await page.locator('.cell.occupied').count();
-  await page.locator('.village').dispatchEvent('click');
-  await page.waitForTimeout(150);
-  expect(await page.locator('.cell.occupied').count()).toBe(before);
-  await expect(page.locator('.village')).toContainText('Village');
-});
+test('clicking the village cannot place or replace a tower',async({page})=>{await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Rock Thrower/}).click();const before=await page.locator('.cell.occupied').count();await page.locator('.village').dispatchEvent('click');await page.waitForTimeout(150);expect(await page.locator('.cell.occupied').count()).toBe(before);await expect(page.locator('.village')).toContainText('Village')});
 
-test('touch orientation blocks in portrait and resumes cleanly in landscape', async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
-  const page = await context.newPage();
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await setReadySave(page);
-  await enterStoneBattle(page);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole('heading', { name: /Rotate to landscape/ })).toBeVisible();
-  await page.setViewportSize({ width: 844, height: 390 });
-  await expect(page.getByRole('heading', { name: /Rotate to landscape/ })).toBeHidden();
-  await expect(page.locator('.battle-screen')).toBeVisible();
-  expect(errors).toEqual([]);
-  await context.close();
-});
+test('touch orientation blocks in portrait and resumes cleanly in landscape',async({browser})=>{const context=await browser.newContext({viewport:{width:844,height:390},hasTouch:true,isMobile:true}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await setReadySave(page);await enterStoneBattle(page);await page.setViewportSize({width:390,height:844});await expect(page.getByRole('heading',{name:/Rotate to landscape/})).toBeVisible();await page.setViewportSize({width:844,height:390});await expect(page.getByRole('heading',{name:/Rotate to landscape/})).toBeHidden();await expect(page.locator('.battle-screen')).toBeVisible();expect(errors).toEqual([]);await context.close()});
 
-test('mid-wave refresh restores unfinished battle instead of losing it', async ({ page }) => {
-  await setReadySave(page);
-  await enterStoneBattle(page);
-  await page.getByRole('button', { name: /Rock Thrower/ }).click();
-  await page.locator('.cell:not(.path):not(.occupied)').first().click();
-  await expect(page.locator('.cell.occupied')).toHaveCount(1);
-  await page.getByRole('button', { name: /Start Wave 1/ }).click();
-  await page.waitForTimeout(1200);
-  await page.reload();
-  await expect(page.getByText(/We saved your game!/)).toBeVisible();
-  await expect(page.getByRole('button', { name: /Continue Battle/ })).toBeVisible();
-});
+test('mid-wave refresh restores unfinished battle instead of losing it',async({page})=>{await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Rock Thrower/}).click();await page.locator('.cell:not(.path):not(.occupied)').first().click();await expect(page.locator('.cell.occupied')).toHaveCount(1);await page.getByRole('button',{name:/Start Wave 1/}).click();await page.waitForTimeout(1200);await page.reload();await expect(page.getByText(/We saved your game!/)).toBeVisible();await expect(page.getByRole('button',{name:/Continue Battle/})).toBeVisible()});
 
-test('fully precached build reloads while browser is offline', async ({ browser }) => {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await setReadySave(page);
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  await page.waitForFunction(async () => {
-    if (!('caches' in window)) return false;
-    const cache = await caches.open('chrono-defense-shell-v28');
-    return Boolean(await cache.match('/__chrono-offline-ready-v28'));
-  }, null, { timeout: 20000 });
-  await expect(page.locator('.offline-ready-pill')).toBeVisible({ timeout: 10000 });
-  await context.setOffline(true);
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  await context.setOffline(false);
-  await context.close();
-});
+test('fully precached build reloads while browser is offline',async({browser})=>{const context=await browser.newContext(),page=await context.newPage();await setReadySave(page);await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();await page.waitForFunction(async()=>{if(!('caches'in window))return false;const cache=await caches.open('chrono-defense-shell-v28');return Boolean(await cache.match('/__chrono-offline-ready-v28'))},null,{timeout:20000});await page.waitForTimeout(1200);if(!(await page.locator('.offline-ready-pill').count())){console.log('OFFLINE_STATUS_TEXT:',await page.locator('.app-status').innerText());console.log('OFFLINE_READY_MARKER:',await page.evaluate(()=>localStorage.getItem('chrono-defense-offline-ready-cache')))}await expect(page.locator('.offline-ready-pill')).toBeVisible({timeout:10000});await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();await context.setOffline(false);await context.close()});
