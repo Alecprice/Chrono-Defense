@@ -68,10 +68,10 @@ export function StoneAgeExperience({onSwitchWorld}) {
   const discardRecoveredBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
   const finishTutorial=()=>{
-    setTutorialDone(true);
-    setScreen('campaign');
-    setSelectedMode('normal');
-    setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
+    const old=save.worlds['stone-age'];
+    const next={...save,worlds:{...save.worlds,'stone-age':{...old,tutorialComplete:true}}};
+    persistSave(next,undefined,false);
+    globalThis.location?.reload();
   };
   const launchDaily=challenge=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(challenge.mapNumber);setSelectedMode(challenge.modeId);setBattleKey(value=>value+1);setScreen('battle')};
   const replaceSave=next=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSave(next);setTutorialDone(Boolean(next.worlds['stone-age'].tutorialComplete));setSelectedMap(Math.min(25,Math.max(1,next.worlds['stone-age'].highestMap??1)));setSelectedMode('normal');setScreen('campaign')};
@@ -81,47 +81,13 @@ export function StoneAgeExperience({onSwitchWorld}) {
   }
 
   if(screen==='resume'&&resumeCheckpoint){
-    return <ResumeBattlePrompt
-      worldId="stone-age"
-      checkpoint={resumeCheckpoint}
-      onContinue={continueRecoveredBattle}
-      onFresh={startRecoveredFresh}
-      onCampaign={discardRecoveredBattle}
-    />;
+    return <ResumeBattlePrompt worldId="stone-age" checkpoint={resumeCheckpoint} onContinue={continueRecoveredBattle} onFresh={startRecoveredFresh} onCampaign={discardRecoveredBattle}/>;
   }
 
   return <>
-    {screen==='campaign' ? <StoneAgeCampaign
-      save={save}
-      selectedMap={selectedMap}
-      setSelectedMap={setSelectedMap}
-      selectedMode={selectedMode}
-      setSelectedMode={setSelectedMode}
-      onStart={enterBattle}
-      onAchievements={()=>setShowAchievements(true)}
-      onCodex={()=>setShowCodex(true)}
-      onSettings={()=>setShowSettings(true)}
-      onStats={()=>setShowStats(true)}
-      onSaveTools={()=>setShowSaveTools(true)}
-      onDaily={launchDaily}
-      onSwitchWorld={onSwitchWorld}
-    /> : <StoneAgeBattleV3
-      key={`${selectedMap}-${selectedMode}-${battleKey}`}
-      mapNumber={selectedMap}
-      modeId={selectedMode}
-      save={save}
-      setSave={battleSetSave}
-      onExit={exitBattle}
-      onNextMap={nextMap}
-      resumeCheckpoint={resumeCheckpoint}
-    />}
+    {screen==='campaign' ? <StoneAgeCampaign save={save} selectedMap={selectedMap} setSelectedMap={setSelectedMap} selectedMode={selectedMode} setSelectedMode={setSelectedMode} onStart={enterBattle} onAchievements={()=>setShowAchievements(true)} onCodex={()=>setShowCodex(true)} onSettings={()=>setShowSettings(true)} onStats={()=>setShowStats(true)} onSaveTools={()=>setShowSaveTools(true)} onDaily={launchDaily} onSwitchWorld={onSwitchWorld}/> : <StoneAgeBattleV3 key={`${selectedMap}-${selectedMode}-${battleKey}`} mapNumber={selectedMap} modeId={selectedMode} save={save} setSave={battleSetSave} onExit={exitBattle} onNextMap={nextMap} resumeCheckpoint={resumeCheckpoint}/>} 
 
-    {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
-      <div className="achievement-book" role="dialog" aria-modal="true" aria-labelledby="stone-achievement-title" onClick={event=>event.stopPropagation()}>
-        <div className="achievement-book-head"><div><small>STONE AGE MASTERY</small><h2 id="stone-achievement-title">Achievements</h2></div><b>{unlockedSet.size}/100</b><button aria-label="Close achievements" onClick={()=>setShowAchievements(false)}>×</button></div>
-        <AchievementBookGrid achievements={stoneAgeAchievements} unlockedSet={unlockedSet}/>
-      </div>
-    </div>}
+    {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}><div className="achievement-book" role="dialog" aria-modal="true" aria-labelledby="stone-achievement-title" onClick={event=>event.stopPropagation()}><div className="achievement-book-head"><div><small>STONE AGE MASTERY</small><h2 id="stone-achievement-title">Achievements</h2></div><b>{unlockedSet.size}/100</b><button aria-label="Close achievements" onClick={()=>setShowAchievements(false)}>×</button></div><AchievementBookGrid achievements={stoneAgeAchievements} unlockedSet={unlockedSet}/></div></div>}
 
     {showCodex&&<StoneAgeCodex stoneSave={stone} onClose={()=>setShowCodex(false)}/>} 
     {showSettings&&<GameSettings settings={save.settings??{}} onChange={updateSettings} onClose={()=>setShowSettings(false)}/>} 
