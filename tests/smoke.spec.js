@@ -26,6 +26,15 @@ test('touch orientation blocks in portrait and resumes cleanly in landscape',asy
 
 test('mid-wave refresh restores unfinished battle instead of losing it',async({page})=>{await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Rock Thrower/}).click();await page.locator('.cell:not(.path):not(.occupied)').first().click();await expect(page.locator('.cell.occupied')).toHaveCount(1);await page.getByRole('button',{name:/Start Wave 1/}).click();await page.waitForTimeout(1200);await page.reload();await expect(page.getByText(/We saved your game!/)).toBeVisible();await expect(page.getByRole('button',{name:/Continue Battle/})).toBeVisible()});
 
+test('moving enemies stay inside the visible road corridor',async({page})=>{
+ await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Start Wave 1/}).click();
+ await expect(page.locator('.enemy').first()).toBeVisible({timeout:5000});await expect(page.locator('.enemy').first()).toHaveClass(/chrono-route-locked/,{timeout:5000});
+ for(let sample=0;sample<14;sample+=1){
+   const onRoad=await page.evaluate(()=>{const enemy=document.querySelector('.enemy');if(!enemy)return true;const er=enemy.getBoundingClientRect(),x=er.left+er.width/2,y=er.top+er.height/2;const roads=[...document.querySelectorAll('.board .cell.path')].map(cell=>cell.getBoundingClientRect());return roads.some(r=>x>=r.left-5&&x<=r.right+5&&y>=r.top-5&&y<=r.bottom+5)});
+   expect(onRoad).toBe(true);await page.waitForTimeout(90);
+ }
+});
+
 test('fully precached build reloads while browser is offline',async({browser})=>{
  const context=await browser.newContext(),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await setReadySave(page);await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();
