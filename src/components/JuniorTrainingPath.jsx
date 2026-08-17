@@ -17,6 +17,16 @@ const LESSONS={
   13:{stage:'RANGER',icon:'🌊',title:'Ranger 3: Do More With Less',idea:'Build an efficient defense instead of filling every square.',tower:'8 combat towers or fewer',steps:['Stay at 8 combat towers or fewer','Upgrade 3 towers','Clear 3 waves'],tip:'Upgrade towers that cover long stretches of road. Strong placement matters more than filling the board.',reward:'The map bonus rewards a compact defense.'},
   14:{stage:'RANGER',icon:'🦣',title:'Ranger 4: Mammoth Hunt',idea:'Prepare specifically for very tough Mammoth-class enemies.',tower:'Strong Hit + slowing support',steps:['Use 3 tower families','Upgrade 3 towers','Finish the Mammoth hunt'],tip:'Mammoths are slow but tough. Slowing support buys extra shooting time while your strongest towers wear them down.',reward:'Clear this hunt to reach the Frozen Age boss.'},
   15:{stage:'RANGER',icon:'👑',title:'Ranger 5: The Great Mammoth',idea:'Beat the Frozen Age boss with a defense you planned yourself.',tower:'Your best 4-family team',steps:['Use 4 tower families','Upgrade 4 towers','Defeat the Great Mammoth'],tip:'Do not spend everything early. Build a solid route, then save enough to strengthen your best towers before the boss wave.',reward:'Victory proves you can handle the Frozen Age without step-by-step coaching.'},
+  16:{stage:'WARDEN',icon:'🌋',title:'Warden 1: Save Some Stone',idea:'Learn to win without spending every last resource.',tower:'Efficient upgrades',steps:['Reach Wave 3','Keep 50 Stone ready','Keep Village HP at 75+'],tip:'Spend for a reason. If your defense is already holding, save resources instead of building another tower.',reward:'This is your first resource-reserve challenge.'},
+  17:{stage:'WARDEN',icon:'🔥',title:'Warden 2: Fight Fire With Fire',idea:'Use a fire tower even when enemies can resist some fire damage.',tower:'Fire Keeper or Fire Slinger',steps:['Build a fire tower','Use 3 tower families','Clear 3 waves'],tip:'A resisted tower can still be useful when paired with other damage types. Do not rely on fire alone.',reward:'The goal is learning team composition, not finding one perfect tower.'},
+  18:{stage:'WARDEN',icon:'🌋',title:'Warden 3: Control the Volcano',idea:'Use the battlefield itself as part of your defense.',tower:'Environment action + heavy damage',steps:['Use the environment action','Upgrade 3 towers','Keep the village standing'],tip:'Save the map action for a dangerous moment instead of pressing it just because it is ready.',reward:'Good timing is now part of the strategy.'},
+  19:{stage:'WARDEN',icon:'🪨',title:'Warden 4: Focus Your Team',idea:'Win with a focused set of tower families.',tower:'5 tower families or fewer',steps:['Use 5 families or fewer','Upgrade 4 towers','Clear 3 waves'],tip:'Choose roles that work together: damage, crowd control, range, and support. You do not need every tower type.',reward:'A focused team is easier to upgrade and manage.'},
+  20:{stage:'WARDEN',icon:'🦖',title:'Warden 5: Volcano Tyrant',idea:'Defeat a boss that punishes weak planning.',tower:'Strong damage + support + control',steps:['Use 4 tower families','Upgrade 4 towers','Defeat the Volcano Tyrant'],tip:'Build for the whole route, then concentrate upgrades on towers that will hit the boss for the longest time.',reward:'Victory completes the Burning Lands and earns Warden status.'},
+  21:{stage:'MASTER',icon:'🦴',title:'Master 1: Hold the Bonefield',idea:'Handle a huge swarm with very little coaching.',tower:'Your swarm-control plan',steps:['Reach 100 defeats','Upgrade 4 towers','Keep the village standing'],tip:'You already know the tools. Watch where enemies bunch up and strengthen that part of your defense.',reward:'Master missions tell you the goal—not the answer.'},
+  22:{stage:'MASTER',icon:'🪄',title:'Master 2: Lead With Support',idea:'Prove you can use a support tower as part of a complete strategy.',tower:'Shaman + your best damage towers',steps:['Build a Shaman','Use 4 tower families','Clear 3 waves'],tip:'Place support where its effect reaches several useful towers. A support tower alone cannot hold the road.',reward:'This map tests whether you understand tower synergy.'},
+  23:{stage:'MASTER',icon:'🏛️',title:'Master 3: Balanced Reserves',idea:'Finish with healthy reserves of every resource.',tower:'Balanced economy',steps:['Keep 25 Wood','Keep 25 Stone','Keep 25 Food'],tip:'Do not overbuild near the end. If the defense is winning, let your camps and rewards rebuild your reserves.',reward:'A strong commander knows when to stop spending.'},
+  24:{stage:'MASTER',icon:'🌀',title:'Master 4: Perfect Defense',idea:'Protect the village from every single enemy.',tower:'Your safest route coverage',steps:['Keep Village HP at 100','Upgrade 5 towers','Reach the final waves'],tip:'Cover the entrance, middle, and final bends. One weak section can ruin a perfect-defense run.',reward:'No village damage is one of the hardest Stone Age objectives.'},
+  25:{stage:'MASTER',icon:'👑',title:'Master 5: The Ancient King',idea:'Use everything you learned to finish the Stone Age.',tower:'Your own championship team',steps:['Use 4+ tower families','Upgrade 5 towers','Defeat The Ancient King'],tip:'There is no single correct build. Use the route, tower roles, upgrades, resources, and support systems you have learned across all 25 maps.',reward:'Defeat the Ancient King to complete Stone Age mastery and open the path into Retro.'},
 };
 
 function juniorEnabled(){return loadSave()?.settings?.juniorMode!==false}
@@ -26,6 +36,7 @@ function towerNames(){return occupied().map(cell=>cell.querySelector('.placed-ic
 function currentWave(){const text=document.querySelector('.battle-screen .resource-strip')?.textContent??'';const m=text.match(/🌊\s*(\d+)/);return Number(m?.[1]??1)}
 function villageHp(){const text=document.querySelector('.battle-screen .resource-strip')?.textContent??'';const m=text.match(/🏕️\s*(\d+)/);return Number(m?.[1]??100)}
 function killCount(){const text=document.querySelector('.battle-screen .resource-strip')?.textContent??'';const m=text.match(/💀\s*(\d+)/);return Number(m?.[1]??0)}
+function resources(){const text=document.querySelector('.battle-screen .resource-strip')?.textContent??'';const read=(icon)=>Number(text.match(new RegExp(`${icon}\\s*(\\d+)`))?.[1]??0);return{wood:read('🪵'),stone:read('🪨'),food:read('🍖')}}
 function upgradedCount(){return occupied().filter(cell=>/L[2-9]|\s[A-B]$/.test(cell.querySelector('.placed-icon small')?.textContent??'')).length}
 function hasUpgrade(){return upgradedCount()>0}
 function enemiesVisible(){return document.querySelectorAll('.battle-screen .enemy').length>0}
@@ -39,7 +50,7 @@ function nearSpecialRoute(){
  return occupied().some(cell=>{const r=cell.getBoundingClientRect();return Math.hypot(r.left+r.width/2-sr.left-sr.width/2,r.top+r.height/2-sr.top-sr.height/2)<190});
 }
 function progressFor(map,actions={}){
- const names=towerNames(),combat=combatNames(names),count=occupied().length,combatCount=combat.length,wave=currentWave(),hp=villageHp(),kills=killCount(),upgraded=hasUpgrade(),families=new Set(combat).size;
+ const names=towerNames(),combat=combatNames(names),count=occupied().length,combatCount=combat.length,wave=currentWave(),hp=villageHp(),kills=killCount(),bank=resources(),upgraded=hasUpgrade(),families=new Set(combat).size;
  if(map===1)return [count>0,count>0&&(wave>1||enemiesVisible()),wave>1];
  if(map===2){const camp=names.some(n=>/camp|quarry/i.test(n));return [count>0,camp,wave>1]}
  if(map===3)return [count>=2,upgraded,true];
@@ -55,10 +66,20 @@ function progressFor(map,actions={}){
  if(map===13)return [combatCount>0&&combatCount<=8,upgradedCount()>=3,wave>=4];
  if(map===14)return [families>=3,upgradedCount()>=3,wonBattle()];
  if(map===15)return [families>=4,upgradedCount()>=4,wonBattle()];
+ if(map===16)return [wave>=3,bank.stone>=50,hp>=75];
+ if(map===17)return [names.some(n=>/Fire Keeper|Fire Slinger/i.test(n)),families>=3,wave>=4];
+ if(map===18)return [Boolean(actions.environment),upgradedCount()>=3,hp>0];
+ if(map===19)return [families>0&&families<=5,upgradedCount()>=4,wave>=4];
+ if(map===20)return [families>=4,upgradedCount()>=4,wonBattle()];
+ if(map===21)return [kills>=100,upgradedCount()>=4,hp>0];
+ if(map===22)return [names.some(n=>/Shaman/i.test(n)),families>=4,wave>=4];
+ if(map===23)return [bank.wood>=25,bank.stone>=25,bank.food>=25];
+ if(map===24)return [hp>=100,upgradedCount()>=5,wave>=4];
+ if(map===25)return [families>=4,upgradedCount()>=5,wonBattle()];
  return [false,false,false];
 }
 
-function stageName(stage){if(stage==='APPRENTICE')return'Apprentice';if(stage==='RANGER')return'Ranger';return'Training'}
+function stageName(stage){if(stage==='APPRENTICE')return'Apprentice';if(stage==='RANGER')return'Ranger';if(stage==='WARDEN')return'Warden';if(stage==='MASTER')return'Master';return'Training'}
 
 export function JuniorTrainingPath(){
  const[enabled,setEnabled]=useState(()=>juniorEnabled());
@@ -69,7 +90,7 @@ export function JuniorTrainingPath(){
  useEffect(()=>{const onSave=()=>setEnabled(juniorEnabled());window.addEventListener('chrono:save',onSave);return()=>window.removeEventListener('chrono:save',onSave)},[]);
  useEffect(()=>{
    const click=event=>{
-     const n=mapNumber();if(n<6||n>15)return;
+     const n=mapNumber();if(n<6||n>25)return;
      if(actionsRef.current.map!==n)actionsRef.current={map:n,sold:false,undo:false,environment:false};
      const button=event.target.closest?.('button');if(!button)return;
      const text=button.textContent??'';
@@ -79,7 +100,7 @@ export function JuniorTrainingPath(){
    };
    document.addEventListener('click',click,true);return()=>document.removeEventListener('click',click,true);
  },[]);
- useEffect(()=>{if(!enabled)return;let prior=map;const tick=()=>{const n=mapNumber();if(n!==prior){prior=n;actionsRef.current={map:n,sold:false,undo:false,environment:false};setOpen(n<=5)}setMap(n);if(n>=1&&n<=15)setProgress(progressFor(n,actionsRef.current))};tick();const id=setInterval(tick,550);return()=>clearInterval(id)},[enabled]);
+ useEffect(()=>{if(!enabled)return;let prior=map;const tick=()=>{const n=mapNumber();if(n!==prior){prior=n;actionsRef.current={map:n,sold:false,undo:false,environment:false};setOpen(n<=5)}setMap(n);if(n>=1&&n<=25)setProgress(progressFor(n,actionsRef.current))};tick();const id=setInterval(tick,550);return()=>clearInterval(id)},[enabled]);
  const lesson=LESSONS[map];
  const done=useMemo(()=>progress.filter(Boolean).length,[progress]);
  if(!enabled||!lesson||!document.querySelector('.battle-screen'))return null;
