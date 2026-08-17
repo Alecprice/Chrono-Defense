@@ -23,6 +23,7 @@ import { JuniorEraProgression } from '../components/JuniorEraProgression.jsx';
 import { KidPolishBridge } from '../components/KidPolishBridge.jsx';
 import { JuniorSandbox } from '../components/JuniorSandbox.jsx';
 import { EnemyEncounterBook } from '../components/EnemyEncounterBook.jsx';
+import { SessionBreakBridge } from '../components/SessionBreakBridge.jsx';
 
 export function App() {
   return (
@@ -50,6 +51,7 @@ export function App() {
         <KidPolishBridge />
         <JuniorSandbox />
         <EnemyEncounterBook />
+        <SessionBreakBridge />
       </FullscreenShell>
     </AppErrorBoundary>
   );
