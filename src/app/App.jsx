@@ -14,6 +14,7 @@ import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
 import { ShopAffordabilityBridge } from '../components/ShopAffordabilityBridge.jsx';
 import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
 import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
+import { StoneAgeRouteGuard } from '../components/StoneAgeRouteGuard.jsx';
 
 export function App() {
   return (
@@ -32,6 +33,7 @@ export function App() {
         <BaseImpactBridge />
         <ShopAffordabilityBridge />
         <MapObjectiveBridge />
+        <StoneAgeRouteGuard />
       </FullscreenShell>
     </AppErrorBoundary>
   );
