@@ -14,6 +14,7 @@ import { BaseImpactBridge } from '../components/BaseImpactBridge.jsx';
 import { ShopAffordabilityBridge } from '../components/ShopAffordabilityBridge.jsx';
 import { MapObjectiveBridge } from '../components/MapObjectiveBridge.jsx';
 import { AppErrorBoundary } from '../components/AppErrorBoundary.jsx';
+import { OptionalFeatureBoundary } from '../components/OptionalFeatureBoundary.jsx';
 import { StoneAgeRouteGuard } from '../components/StoneAgeRouteGuard.jsx';
 import { JuniorCoach } from '../components/JuniorCoach.jsx';
 import { JuniorRewardBridge } from '../components/JuniorRewardBridge.jsx';
@@ -27,35 +28,37 @@ import { SessionBreakBridge } from '../components/SessionBreakBridge.jsx';
 import { TowerRoleBridge } from '../components/TowerRoleBridge.jsx';
 import { LowHealthBridge } from '../components/LowHealthBridge.jsx';
 
+const Optional=({name,children})=><OptionalFeatureBoundary name={name}>{children}</OptionalFeatureBoundary>;
+
 export function App() {
   return (
     <AppErrorBoundary>
       <FullscreenShell>
         <ChronoRouter />
-        <AppStatus />
-        <GameAudioBridge />
-        <SettingsBridge />
-        <DragPlacementBridge />
-        <LiveAssetBridge />
-        <BattleIntelBridge />
-        <KeyboardControls />
-        <DailyMissionBridge />
-        <BossEntranceBridge />
-        <BaseImpactBridge />
-        <ShopAffordabilityBridge />
-        <MapObjectiveBridge />
-        <StoneAgeRouteGuard />
-        <JuniorCoach />
-        <JuniorRewardBridge />
-        <KidSafeActionBridge />
-        <JuniorTrainingPath />
-        <JuniorEraProgression />
-        <KidPolishBridge />
-        <JuniorSandbox />
-        <EnemyEncounterBook />
-        <SessionBreakBridge />
-        <TowerRoleBridge />
-        <LowHealthBridge />
+        <Optional name="AppStatus"><AppStatus /></Optional>
+        <Optional name="GameAudioBridge"><GameAudioBridge /></Optional>
+        <Optional name="SettingsBridge"><SettingsBridge /></Optional>
+        <Optional name="DragPlacementBridge"><DragPlacementBridge /></Optional>
+        <Optional name="LiveAssetBridge"><LiveAssetBridge /></Optional>
+        <Optional name="BattleIntelBridge"><BattleIntelBridge /></Optional>
+        <Optional name="KeyboardControls"><KeyboardControls /></Optional>
+        <Optional name="DailyMissionBridge"><DailyMissionBridge /></Optional>
+        <Optional name="BossEntranceBridge"><BossEntranceBridge /></Optional>
+        <Optional name="BaseImpactBridge"><BaseImpactBridge /></Optional>
+        <Optional name="ShopAffordabilityBridge"><ShopAffordabilityBridge /></Optional>
+        <Optional name="MapObjectiveBridge"><MapObjectiveBridge /></Optional>
+        <Optional name="StoneAgeRouteGuard"><StoneAgeRouteGuard /></Optional>
+        <Optional name="JuniorCoach"><JuniorCoach /></Optional>
+        <Optional name="JuniorRewardBridge"><JuniorRewardBridge /></Optional>
+        <Optional name="KidSafeActionBridge"><KidSafeActionBridge /></Optional>
+        <Optional name="JuniorTrainingPath"><JuniorTrainingPath /></Optional>
+        <Optional name="JuniorEraProgression"><JuniorEraProgression /></Optional>
+        <Optional name="KidPolishBridge"><KidPolishBridge /></Optional>
+        <Optional name="JuniorSandbox"><JuniorSandbox /></Optional>
+        <Optional name="EnemyEncounterBook"><EnemyEncounterBook /></Optional>
+        <Optional name="SessionBreakBridge"><SessionBreakBridge /></Optional>
+        <Optional name="TowerRoleBridge"><TowerRoleBridge /></Optional>
+        <Optional name="LowHealthBridge"><LowHealthBridge /></Optional>
       </FullscreenShell>
     </AppErrorBoundary>
   );
