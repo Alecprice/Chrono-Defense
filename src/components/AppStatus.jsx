@@ -37,6 +37,7 @@ export function AppStatus(){
     window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);
     window.addEventListener('chrono:save',onSaved);
     window.addEventListener('chrono:checkpoint-saved',onSaved);
+    if(!storedOfflineReady()&&'serviceWorker'in navigator){navigator.serviceWorker.ready.then(registration=>{(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}).catch(()=>{})}
     return()=>{
       if(saveTimer.current)clearTimeout(saveTimer.current);
       window.removeEventListener('online',onOnline);
