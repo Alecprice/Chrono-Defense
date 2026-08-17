@@ -1,5 +1,5 @@
 import React from 'react';
-import { SAVE_KEY, SAVE_BACKUP_KEY, SAVE_META_KEY, restoreBackup } from '../core/save.js';
+import { clearSaveStorage, restoreBackup } from '../core/save.js';
 
 export class AppErrorBoundary extends React.Component {
   constructor(props){super(props);this.state={error:null,recoveryMessage:''};}
@@ -16,11 +16,7 @@ export class AppErrorBoundary extends React.Component {
     }
   };
   reset=()=>{
-    try{
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem(SAVE_BACKUP_KEY);
-      localStorage.removeItem(SAVE_META_KEY);
-    }catch{}
+    clearSaveStorage();
     location.hash='stone-age';
     location.reload();
   };
