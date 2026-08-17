@@ -6,7 +6,7 @@ export function installGameTimerGuard(){
   window.setInterval=(callback,delay,...args)=>{
     if(typeof callback!=='function')return nativeSetInterval(callback,delay,...args);
     return nativeSetInterval((...callbackArgs)=>{
-      if(window.__chronoOrientationBlocked||document.hidden)return;
+      if(window.__chronoOrientationBlocked||window.__chronoSessionBlocked||document.hidden)return;
       callback(...callbackArgs);
     },delay,...args);
   };
