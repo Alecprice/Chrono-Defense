@@ -21,6 +21,7 @@ import { KidSafeActionBridge } from '../components/KidSafeActionBridge.jsx';
 import { JuniorTrainingPath } from '../components/JuniorTrainingPath.jsx';
 import { JuniorEraProgression } from '../components/JuniorEraProgression.jsx';
 import { KidPolishBridge } from '../components/KidPolishBridge.jsx';
+import { JuniorSandbox } from '../components/JuniorSandbox.jsx';
 
 export function App() {
   return (
@@ -46,6 +47,7 @@ export function App() {
         <JuniorTrainingPath />
         <JuniorEraProgression />
         <KidPolishBridge />
+        <JuniorSandbox />
       </FullscreenShell>
     </AppErrorBoundary>
   );
