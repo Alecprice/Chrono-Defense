@@ -25,16 +25,15 @@ async function enterStoneBattle(page) {
   await expect(page.locator('.battle-screen')).toBeVisible();
 }
 
-test('first-run welcome and tutorial hand off to campaign without blank screen', async ({ page }) => {
+test('tutorial hands off to campaign without blank screen', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem('chrono-welcome-seen', '1'));
   await page.goto('/');
-  const welcome = page.getByRole('button', { name: /Let’s Play!/ });
-  if (await welcome.isVisible().catch(() => false)) await welcome.click();
   await expect(page.getByRole('heading', { name: /Protect Your Village!/ })).toBeVisible();
   await page.getByRole('button', { name: 'Skip' }).click();
   await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  await expect(page.locator('body')).not.toHaveText('');
+  await expect(page.locator('.campaign-screen')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -86,7 +85,12 @@ test('fully precached build reloads while browser is offline', async ({ browser 
   await setReadySave(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
-  await expect(page.getByText(/Offline Ready/)).toBeVisible({ timeout: 20000 });
+  await page.waitForFunction(async () => {
+    if (!('caches' in window)) return false;
+    const cache = await caches.open('chrono-defense-shell-v27');
+    return Boolean(await cache.match('/index.html'));
+  }, null, { timeout: 20000 });
+  await expect(page.getByText(/Offline Ready/)).toBeVisible();
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
