@@ -1,4 +1,4 @@
-const CACHE='chrono-defense-shell-v18';
+const CACHE='chrono-defense-shell-v19';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 async function precache(){
   const cache=await caches.open(CACHE);
@@ -38,5 +38,5 @@ self.addEventListener('fetch',event=>{
   if(event.request.mode==='navigate'){
     event.respondWith(caches.match('/index.html').then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('/index.html',copy));return response})));return;
   }
-  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response})));
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}));
 });
