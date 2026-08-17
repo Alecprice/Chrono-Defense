@@ -1,0 +1,22 @@
+import React from 'react';
+import { SAVE_KEY } from '../core/save.js';
+
+export class AppErrorBoundary extends React.Component {
+  constructor(props){super(props);this.state={error:null};}
+  static getDerivedStateFromError(error){return{error};}
+  componentDidCatch(error,info){console.error('Chrono Defense runtime error',error,info);}
+  reload=()=>location.reload();
+  reset=()=>{try{localStorage.removeItem(SAVE_KEY)}catch{} location.hash='stone-age';location.reload();};
+  render(){
+    if(!this.state.error)return this.props.children;
+    return <div style={{position:'fixed',inset:0,display:'grid',placeItems:'center',padding:20,background:'#17130f',color:'#f5ead7',fontFamily:'system-ui',zIndex:99999}}>
+      <div style={{width:'min(520px,92vw)',padding:22,border:'1px solid #8a633d',borderRadius:18,background:'#2b2018',boxShadow:'0 20px 70px #000a'}}>
+        <small style={{color:'#d7a45e',letterSpacing:'.12em'}}>CHRONO DEFENSE RECOVERY</small>
+        <h1 style={{margin:'6px 0 8px'}}>The timeline hit an error.</h1>
+        <p style={{color:'#cbb493',lineHeight:1.5}}>Your save has not been deleted. Reload the game first. If the same error returns, reset the local save and restart Stone Age.</p>
+        <pre style={{whiteSpace:'pre-wrap',fontSize:11,color:'#ffb39e',background:'#140e0a',padding:10,borderRadius:8,maxHeight:130,overflow:'auto'}}>{String(this.state.error?.message||this.state.error)}</pre>
+        <div style={{display:'flex',gap:8,marginTop:12}}><button onClick={this.reload}>Reload Game</button><button onClick={this.reset}>Reset Local Save</button></div>
+      </div>
+    </div>;
+  }
+}
