@@ -1,8 +1,10 @@
 const CACHE='chrono-defense-shell-v28';
+const READY='/__chrono-offline-ready-v28';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
 async function precache(target=null){
   const cache=await caches.open(CACHE);
+  await cache.delete(READY);
   await cache.addAll(CORE);
   try{
     const response=await fetch('/precache-manifest.json',{cache:'no-store'});
@@ -21,6 +23,7 @@ async function precache(target=null){
       }));
       done=Math.min(urls.length,i+batch.length);await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
     }
+    await cache.put(READY,new Response('ready',{headers:{'content-type':'text/plain'}}));
     return true;
   }catch{return false}
 }
