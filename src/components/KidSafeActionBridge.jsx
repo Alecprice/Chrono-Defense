@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BATTLE_CHECKPOINT_KEY } from '../core/battleCheckpoint.js';
 
-const BATTLE_ROOTS = '.stone-battle,.retro-battle,.future-battle,.space-battle,.rift-battle';
+const BATTLE_ROOTS = '.game-frame.battle-screen,.retro-battle,.future-battle,.space-battle,.rift-battle';
 const UNDO_KEY = 'chrono-defense-last-action-undo-v1';
 const UNDO_MS = 6500;
 const TAP_GUARD_MS = 420;
@@ -11,26 +11,26 @@ function session(){try{return globalThis.sessionStorage??null}catch{return null}
 function checkpoint(){try{return storage()?.getItem(BATTLE_CHECKPOINT_KEY)??null}catch{return null}}
 function actionLabel(target){
   const text=(target?.textContent??'').trim();
-  if(/sell/i.test(text))return 'Tower sold';
+  if(/sell|remove/i.test(text))return 'Tower sold';
   if(/upgrade|level up|power up/i.test(text))return 'Tower upgraded';
   if(/evolve|branch/i.test(text))return 'Tower evolved';
-  if(target?.matches?.('[data-cell],.stone-cell,.retro-cell,.future-cell,.space-cell,.rift-cell'))return 'Tower placed';
+  if(target?.matches?.('[data-cell],.stone-cell,.retro-cell,.future-cell,.space-cell,.rift-cell,.cell'))return 'Tower placed';
   return 'Action changed';
 }
 function battleRoot(node){return node?.closest?.(BATTLE_ROOTS)??null}
 function fingerprint(root){
   if(!root)return '';
   const occupied=root.querySelectorAll('.occupied,[data-occupied="true"]').length;
-  const selected=root.querySelectorAll('.selected,.active').length;
+  const selected=root.querySelectorAll('.selected,.active,.selected-cell').length;
   return `${occupied}|${selected}|${(root.textContent??'').replace(/\s+/g,' ').slice(0,3000)}`;
 }
 function isActionTarget(target){
   if(!target)return false;
   if(target.closest?.('.chrono-undo-toast'))return false;
-  if(target.matches?.('[data-cell],.stone-cell,.retro-cell,.future-cell,.space-cell,.rift-cell'))return true;
+  if(target.matches?.('[data-cell],.stone-cell,.retro-cell,.future-cell,.space-cell,.rift-cell,.cell'))return true;
   const button=target.closest?.('button');
   if(!button)return false;
-  return /sell|upgrade|evolve|branch|build|place/i.test(button.textContent??'');
+  return /sell|remove|upgrade|evolve|branch|build|place/i.test(button.textContent??'');
 }
 function expensiveTarget(target){
   return target?.closest?.('.chrono-too-expensive,.cost.poor,.no-power')??null;
@@ -41,10 +41,12 @@ export function KidSafeActionBridge(){
   const [notice,setNotice]=useState(null);
   const lastTap=useRef({key:'',time:0});
   const timerRef=useRef(null);
+  const noticeTimerRef=useRef(null);
 
   useEffect(()=>{
     const clearTimer=()=>{if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=null};
-    const showNotice=(text)=>{setNotice(text);setTimeout(()=>setNotice(null),1900)};
+    const clearNotice=()=>{if(noticeTimerRef.current)clearTimeout(noticeTimerRef.current);noticeTimerRef.current=null};
+    const showNotice=(text)=>{clearNotice();setNotice(text);noticeTimerRef.current=setTimeout(()=>setNotice(null),1900)};
     const onPointerDown=(event)=>{
       const costly=expensiveTarget(event.target);
       if(costly){
@@ -87,7 +89,7 @@ export function KidSafeActionBridge(){
     };
     document.addEventListener('pointerdown',onPointerDown,true);
     document.addEventListener('click',onClickCapture,true);
-    return()=>{clearTimer();document.removeEventListener('pointerdown',onPointerDown,true);document.removeEventListener('click',onClickCapture,true)};
+    return()=>{clearTimer();clearNotice();document.removeEventListener('pointerdown',onPointerDown,true);document.removeEventListener('click',onClickCapture,true)};
   },[]);
 
   const applyUndo=()=>{
