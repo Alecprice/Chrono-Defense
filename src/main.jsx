@@ -51,6 +51,7 @@ import './styles/junior-training.css';
 import './styles/junior-era-progression.css';
 import './styles/kid-polish.css';
 import './styles/junior-sandbox.css';
+import './styles/enemy-book.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
