@@ -8,6 +8,7 @@ export function GameSettings({settings,onChange,onClose}){
     <div className="settings-card" role="dialog" aria-modal="true" aria-labelledby="chrono-settings-title" onClick={event=>event.stopPropagation()}>
       <header><div><small>CHRONO DEFENSE</small><h2 id="chrono-settings-title">Game Settings</h2></div><button onClick={onClose} aria-label="Close settings">×</button></header>
       <div className="settings-list">
+        <label><span><b>Junior Mode</b><small>Shows a friendly helper, highlights what to tap next, and makes important controls easier to spot.</small></span><input type="checkbox" checked={settings.juniorMode!==false} onChange={event=>update('juniorMode',event.target.checked)}/></label>
         <label><span><b>Sound Effects</b><small>Button, placement, wave, boss and combat feedback.</small></span><input type="checkbox" checked={settings.sound!==false} onChange={event=>update('sound',event.target.checked)}/></label>
         <label><span><b>Music</b><small>Subtle procedural ambience changes with each era and pauses when the game is hidden.</small></span><input type="checkbox" checked={settings.music!==false} onChange={event=>update('music',event.target.checked)}/></label>
         <label><span><b>Reduced Motion</b><small>Disables most animation and movement effects.</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={event=>update('reducedMotion',event.target.checked)}/></label>
