@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const OFFLINE_CACHE_VERSION='chrono-defense-shell-v26';
+const OFFLINE_CACHE_VERSION='chrono-defense-shell-v27';
 const OFFLINE_READY_KEY='chrono-defense-offline-ready-cache';
 function storedOfflineReady(){try{return localStorage.getItem(OFFLINE_READY_KEY)===OFFLINE_CACHE_VERSION}catch{return false}}
 
