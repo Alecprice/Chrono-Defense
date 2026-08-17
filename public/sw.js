@@ -1,4 +1,4 @@
-const CACHE='chrono-defense-shell-v27';
+const CACHE='chrono-defense-shell-v28';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
 async function precache(target=null){
