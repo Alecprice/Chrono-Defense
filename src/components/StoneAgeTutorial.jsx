@@ -1,28 +1,3 @@
-import React, { useState } from 'react';
-
-const STEPS=[
-  {icon:'🏕️',title:'Keep the Village Safe',body:'Bad guys follow the road toward your village. Stop them before they reach the end.'},
-  {icon:'🪨',title:'Pick a Tower',body:'Tap a tower card. Then tap a green square beside the road to build it.'},
-  {icon:'🌊',title:'Start the Wave',body:'When you are ready, tap Start Wave. Your towers attack all by themselves.'},
-  {icon:'⬆️',title:'Make Towers Stronger',body:'Tap a tower you already built to upgrade it. Stronger towers beat tougher enemies.'},
-  {icon:'⭐',title:'Follow the Helper',body:'Junior Mode will show you what to tap next. You can turn the helper off later in Settings.'},
-];
-
-export function StoneAgeTutorial({onComplete}){
-  const [step,setStep]=useState(0);
-  const current=STEPS[step];
-  const last=step===STEPS.length-1;
-  return <div className="tutorial-overlay">
-    <div className="tutorial-card">
-      <div className="tutorial-progress">{STEPS.map((_,index)=><span key={index} className={index<=step?'active':''}/>)}</div>
-      <div className="tutorial-icon">{current.icon}</div>
-      <small>HOW TO PLAY • {step+1}/{STEPS.length}</small>
-      <h2>{current.title}</h2>
-      <p>{current.body}</p>
-      <div className="tutorial-actions">
-        <button className="tutorial-skip" onClick={onComplete}>I know how</button>
-        <div>{step>0&&<button onClick={()=>setStep(value=>value-1)}>Back</button>}<button className="tutorial-next" onClick={()=>last?onComplete():setStep(value=>value+1)}>{last?'Let’s Play! →':'Next →'}</button></div>
-      </div>
-    </div>
-  </div>
-}
+import React,{useState}from'react';
+const STEPS=[{icon:'🏕️',title:'Protect Your Village!',body:'Enemies come from START and follow the road arrows to your village.',cue:'START  ➜  ➜  ➜  🏕️'},{icon:'🪨',title:'Pick a Tower',body:'Tap a tower card. The game will glow around a good choice for you.',cue:'👆 TOWER'},{icon:'🟩',title:'Build Beside the Road',body:'Tap a glowing green spot beside the road. Never build on the road.',cue:'🪨  🟩  🛤️'},{icon:'▶️',title:'Start the Wave',body:'Tap Start Wave when you are ready. Your towers shoot all by themselves!',cue:'▶️  START WAVE'},{icon:'⬆️',title:'Get Stronger',body:'Between waves, build more towers or upgrade one you already made.',cue:'🗼  ➜  ⬆️'},{icon:'⭐',title:'Your Coach Can Help',body:'Look for the helper box when you forget what to do. You can hide it anytime.',cue:'⭐ YOU GOT THIS!'}];
+export function StoneAgeTutorial({onComplete}){const[step,setStep]=useState(0),current=STEPS[step],last=step===STEPS.length-1;return <div className="tutorial-overlay"><div className="tutorial-card"><div className="tutorial-progress">{STEPS.map((_,i)=><span key={i} className={i<=step?'active':''}/>)}</div><div className="tutorial-icon">{current.icon}</div><small>HOW TO PLAY • {step+1}/{STEPS.length}</small><h2>{current.title}</h2><p>{current.body}</p><div className="tutorial-cue" aria-hidden="true">{current.cue}</div><div className="tutorial-actions"><button className="tutorial-skip" onClick={onComplete}>Skip</button><div>{step>0&&<button onClick={()=>setStep(v=>v-1)}>← Back</button>}<button className="tutorial-next" onClick={()=>last?onComplete():setStep(v=>v+1)}>{last?'Play! 🎮':'Next →'}</button></div></div></div></div>}
