@@ -43,7 +43,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
 
   useEffect(()=>{
     if(save.settings?.haptics===false||typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return undefined;
-    const pulse=event=>{const button=event.target?.closest?.('button');if(button&&!button.disabled)navigator.vibrate(8);};
+    const pulse=event=>{const button=event.target?.closest?.('button');if(button&&!button.disabled)try{navigator.vibrate(8)}catch{}};
     document.addEventListener('pointerup',pulse,{passive:true});
     return()=>document.removeEventListener('pointerup',pulse);
   },[save.settings?.haptics]);
@@ -54,6 +54,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
   },[selectedMode,stone.completedMap,stone.totems]);
 
   useEffect(()=>{
+    if(!stone.tutorialComplete)return;
     const unlocked=stone.achievements??[];
     const fresh=newlyUnlockedAchievements(stone,unlocked);
     if(!fresh.length) return;
@@ -64,7 +65,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
     });
     setAchievementToast(fresh[0]);
   },[
-    stone.stats?.kills,stone.stats?.wavesCleared,stone.stats?.mapsCompleted,stone.stats?.bossesDefeated,
+    stone.tutorialComplete,stone.stats?.kills,stone.stats?.wavesCleared,stone.stats?.mapsCompleted,stone.stats?.bossesDefeated,
     stone.stats?.flawlessMaps,stone.stats?.structuresBuilt,stone.stats?.upgrades,stone.stats?.resourcesCollected,
     stone.completedMap,stone.totems,stone.mastery
   ]);
@@ -76,9 +77,17 @@ export function StoneAgeExperience({onSwitchWorld}) {
   const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
-  const finishTutorial=()=>setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
+  const finishTutorial=()=>{
+    setScreen('campaign');
+    setSelectedMode('normal');
+    setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
+  };
   const launchDaily=challenge=>{setSelectedMap(challenge.mapNumber);setSelectedMode(challenge.modeId);setBattleKey(value=>value+1);setScreen('battle')};
   const replaceSave=next=>{setSave(next);setSelectedMap(Math.min(25,Math.max(1,next.worlds['stone-age'].highestMap??1)));setSelectedMode('normal')};
+
+  if(!stone.tutorialComplete){
+    return <StoneAgeTutorial onComplete={finishTutorial}/>;
+  }
 
   return <>
     {screen==='campaign' ? <StoneAgeCampaign
@@ -104,8 +113,6 @@ export function StoneAgeExperience({onSwitchWorld}) {
       onExit={exitBattle}
       onNextMap={nextMap}
     />}
-
-    {!stone.tutorialComplete&&<StoneAgeTutorial onComplete={finishTutorial}/>} 
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
       <div className="achievement-book" onClick={event=>event.stopPropagation()}>
