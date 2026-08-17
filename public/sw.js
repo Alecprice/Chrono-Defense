@@ -2,6 +2,7 @@ const CACHE='chrono-defense-shell-v28';
 const READY='/__chrono-offline-ready-v28';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
+async function isOfflineReady(){try{const cache=await caches.open(CACHE);return Boolean(await cache.match(READY))}catch{return false}}
 async function precache(target=null){
   const cache=await caches.open(CACHE);
   await cache.delete(READY);
@@ -15,11 +16,7 @@ async function precache(target=null){
     for(let i=0;i<urls.length;i+=20){
       const batch=urls.slice(i,i+20);
       await Promise.all(batch.map(async url=>{
-        try{
-          const request=new Request(url,{cache:'reload'});
-          const asset=await fetch(request);
-          if(asset.ok)await cache.put(request,asset);
-        }catch{}
+        try{const request=new Request(url,{cache:'reload'});const asset=await fetch(request);if(asset.ok)await cache.put(request,asset)}catch{}
       }));
       done=Math.min(urls.length,i+batch.length);await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
     }
@@ -33,13 +30,13 @@ self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys
 self.addEventListener('message',event=>{
   if(event.data==='SKIP_WAITING')self.skipWaiting();
   if(event.data==='PRECACHE_ALL')event.waitUntil(precache(event.source).then(ok=>ok&&announceOfflineReady(event.source)));
+  if(event.data==='GET_OFFLINE_STATUS')event.waitUntil(isOfflineReady().then(ready=>post(event.source,{type:ready?'CHRONO_OFFLINE_READY':'CHRONO_OFFLINE_NOT_READY',cache:CACHE})));
 });
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
-  const url=new URL(event.request.url);
-  if(url.origin!==location.origin)return;
+  const url=new URL(event.request.url);if(url.origin!==location.origin)return;
   if(event.request.mode==='navigate'){
     event.respondWith(caches.match('/index.html').then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('/index.html',copy));return response})));return;
   }
-  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}));
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response})));
 });
