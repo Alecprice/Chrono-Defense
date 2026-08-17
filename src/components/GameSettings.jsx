@@ -1,6 +1,7 @@
 import React from 'react';
 
 const EFFECT_OPTIONS=['low','medium','high'];
+const BREAK_OPTIONS=[0,20,30,45,60];
 
 export function GameSettings({settings,onChange,onClose}){
   const update=(key,value)=>onChange({...settings,[key]:value});
@@ -13,6 +14,7 @@ export function GameSettings({settings,onChange,onClose}){
         <label><span><b>Read Hints Aloud</b><small>Adds spoken help for Junior hints and boss preparation on supported devices.</small></span><input type="checkbox" checked={settings.readAloud!==false} onChange={event=>update('readAloud',event.target.checked)}/></label>
         <label><span><b>Dyslexia-Friendly Text</b><small>Uses wider spacing and simpler text rhythm for important Junior guidance.</small></span><input type="checkbox" checked={Boolean(settings.dyslexiaFriendly)} onChange={event=>update('dyslexiaFriendly',event.target.checked)}/></label>
         <label><span><b>Color-Safe Indicators</b><small>Uses shapes and stronger outlines so important information is not communicated by color alone.</small></span><input type="checkbox" checked={Boolean(settings.colorblindSafe)} onChange={event=>update('colorblindSafe',event.target.checked)}/></label>
+        <div className="effects-setting"><span><b>Play Break Reminder</b><small>Pauses the game and shows a friendly break reminder after active play time.</small></span><div role="group" aria-label="Play break reminder">{BREAK_OPTIONS.map(minutes=><button key={minutes} aria-pressed={Number(settings.breakReminder??30)===minutes} className={Number(settings.breakReminder??30)===minutes?'active':''} onClick={()=>update('breakReminder',minutes)}>{minutes===0?'Off':`${minutes}m`}</button>)}</div></div>
         <label><span><b>Sound Effects</b><small>Button, placement, wave, boss and combat feedback.</small></span><input type="checkbox" checked={settings.sound!==false} onChange={event=>update('sound',event.target.checked)}/></label>
         <label><span><b>Music</b><small>Subtle procedural ambience changes with each era and pauses when the game is hidden.</small></span><input type="checkbox" checked={settings.music!==false} onChange={event=>update('music',event.target.checked)}/></label>
         <label><span><b>Reduced Motion</b><small>Disables most animation and movement effects.</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={event=>update('reducedMotion',event.target.checked)}/></label>
