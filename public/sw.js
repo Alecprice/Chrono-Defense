@@ -1,6 +1,7 @@
-const CACHE='chrono-defense-shell-v25';
+const CACHE='chrono-defense-shell-v26';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
-async function precache(){
+async function post(target,message){if(target?.postMessage){target.postMessage(message);return}const clients=await self.clients.matchAll({type:'window'});clients.forEach(client=>client.postMessage(message))}
+async function precache(target=null){
   const cache=await caches.open(CACHE);
   await cache.addAll(CORE);
   try{
@@ -8,28 +9,27 @@ async function precache(){
     if(!response.ok)throw new Error('manifest');
     const files=await response.json();
     const urls=[...new Set([...CORE,...files])];
+    let done=0;await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
     for(let i=0;i<urls.length;i+=20){
-      await Promise.all(urls.slice(i,i+20).map(async url=>{
+      const batch=urls.slice(i,i+20);
+      await Promise.all(batch.map(async url=>{
         try{
           const request=new Request(url,{cache:'reload'});
           const asset=await fetch(request);
           if(asset.ok)await cache.put(request,asset);
         }catch{}
       }));
+      done=Math.min(urls.length,i+batch.length);await post(target,{type:'CHRONO_OFFLINE_PROGRESS',done,total:urls.length,cache:CACHE});
     }
     return true;
   }catch{return false}
 }
-async function announceOfflineReady(target=null){
-  if(target?.postMessage){target.postMessage({type:'CHRONO_OFFLINE_READY',cache:CACHE});return}
-  const clients=await self.clients.matchAll({type:'window'});
-  clients.forEach(client=>client.postMessage({type:'CHRONO_OFFLINE_READY',cache:CACHE}));
-}
+async function announceOfflineReady(target=null){await post(target,{type:'CHRONO_OFFLINE_READY',cache:CACHE})}
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()).then(()=>precache()).then(ok=>ok&&announceOfflineReady()))});
 self.addEventListener('message',event=>{
   if(event.data==='SKIP_WAITING')self.skipWaiting();
-  if(event.data==='PRECACHE_ALL')event.waitUntil(precache().then(ok=>ok&&announceOfflineReady(event.source)));
+  if(event.data==='PRECACHE_ALL')event.waitUntil(precache(event.source).then(ok=>ok&&announceOfflineReady(event.source)));
 });
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
