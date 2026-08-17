@@ -1,4 +1,4 @@
-const CACHE='chrono-defense-shell-v16';
+const CACHE='chrono-defense-shell-v17';
 const CORE=['/','/index.html','/manifest.webmanifest','/precache-manifest.json'];
 async function precache(){
   const cache=await caches.open(CACHE);
