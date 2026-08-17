@@ -32,8 +32,14 @@ test('tutorial hands off to campaign without blank screen', async ({ page }) => 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /Protect Your Village!/ })).toBeVisible();
   await page.getByRole('button', { name: 'Skip' }).click();
-  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
+  await page.waitForTimeout(400);
+  if (!(await page.locator('.campaign-screen').count())) {
+    console.log('POST_SKIP_BODY:', (await page.locator('body').innerText()).slice(0, 3000));
+    console.log('POST_SKIP_SAVE:', await page.evaluate(key => localStorage.getItem(key), saveKey));
+    console.log('POST_SKIP_ERRORS:', JSON.stringify(errors));
+  }
   await expect(page.locator('.campaign-screen')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -44,8 +50,7 @@ test('clicking the village cannot place or replace a tower', async ({ page }) =>
   const before = await page.locator('.cell.occupied').count();
   await page.locator('.village').dispatchEvent('click');
   await page.waitForTimeout(150);
-  const after = await page.locator('.cell.occupied').count();
-  expect(after).toBe(before);
+  expect(await page.locator('.cell.occupied').count()).toBe(before);
   await expect(page.locator('.village')).toContainText('Village');
 });
 
@@ -69,8 +74,7 @@ test('mid-wave refresh restores unfinished battle instead of losing it', async (
   await setReadySave(page);
   await enterStoneBattle(page);
   await page.getByRole('button', { name: /Rock Thrower/ }).click();
-  const buildCell = page.locator('.cell:not(.path):not(.occupied)').first();
-  await buildCell.click();
+  await page.locator('.cell:not(.path):not(.occupied)').first().click();
   await expect(page.locator('.cell.occupied')).toHaveCount(1);
   await page.getByRole('button', { name: /Start Wave 1/ }).click();
   await page.waitForTimeout(1200);
@@ -88,9 +92,9 @@ test('fully precached build reloads while browser is offline', async ({ browser 
   await page.waitForFunction(async () => {
     if (!('caches' in window)) return false;
     const cache = await caches.open('chrono-defense-shell-v28');
-    return Boolean(await cache.match('/index.html'));
+    return Boolean(await cache.match('/__chrono-offline-ready-v28'));
   }, null, { timeout: 20000 });
-  await expect(page.getByText(/Offline Ready/)).toBeVisible();
+  await expect(page.locator('.offline-ready-pill')).toBeVisible({ timeout: 10000 });
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'STONE AGE' })).toBeVisible();
