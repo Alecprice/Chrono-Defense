@@ -22,6 +22,7 @@ import { JuniorTrainingPath } from '../components/JuniorTrainingPath.jsx';
 import { JuniorEraProgression } from '../components/JuniorEraProgression.jsx';
 import { KidPolishBridge } from '../components/KidPolishBridge.jsx';
 import { JuniorSandbox } from '../components/JuniorSandbox.jsx';
+import { EnemyEncounterBook } from '../components/EnemyEncounterBook.jsx';
 
 export function App() {
   return (
@@ -48,6 +49,7 @@ export function App() {
         <JuniorEraProgression />
         <KidPolishBridge />
         <JuniorSandbox />
+        <EnemyEncounterBook />
       </FullscreenShell>
     </AppErrorBoundary>
   );
