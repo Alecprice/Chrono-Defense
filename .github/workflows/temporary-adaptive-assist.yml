@@ -60,4 +60,6 @@ jobs:
           git config user.email "52548136+Alecprice@users.noreply.github.com"
           git add src/components/StoneAgeBattleV3.jsx src/components/RetroBattleV2.jsx src/components/FutureBattleV2.jsx src/components/SpaceBattleV2.jsx src/components/TimeRiftBattleV2.jsx
           git commit -m "Wire adaptive easier retry into every era"
-          git push
+          git fetch origin main
+          git rebase origin/main
+          git push origin main
