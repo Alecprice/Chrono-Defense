@@ -1,0 +1,24 @@
+name: Temporary Final Kid Polish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run build
+      - run: test -f dist/precache-manifest.json
+      - run: grep -q "chrono-defense-shell-v27" public/sw.js
+      - run: grep -q "chrono-defense-shell-v27" src/components/AppStatus.jsx
+      - run: grep -q "applyAdaptiveAssist('stone-age'" src/components/StoneAgeBattleV3.jsx
+      - run: grep -q "applyAdaptiveAssist('retro'" src/components/RetroBattleV2.jsx
+      - run: grep -q "applyAdaptiveAssist('future'" src/components/FutureBattleV2.jsx
+      - run: grep -q "applyAdaptiveAssist('space'" src/components/SpaceBattleV2.jsx
+      - run: grep -q "applyAdaptiveAssist('time-rift'" src/components/TimeRiftBattleV2.jsx
