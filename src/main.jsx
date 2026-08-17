@@ -53,6 +53,7 @@ import './styles/kid-polish.css';
 import './styles/junior-sandbox.css';
 import './styles/enemy-book.css';
 import './styles/session-break.css';
+import './styles/tower-role.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
