@@ -1,0 +1,17 @@
+name: Package Chrono Defense
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create game ZIP
+        run: zip -r Chrono-Defense-current.zip index.html package.json public src .gitignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Chrono-Defense-current
+          path: Chrono-Defense-current.zip
+          if-no-files-found: error
