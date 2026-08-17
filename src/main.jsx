@@ -44,6 +44,7 @@ import './styles/map-objectives.css';
 import './styles/objective-checklist.css';
 import './styles/stone-route.css';
 import './styles/junior-mode.css';
+import './styles/junior-rewards.css';
 import { registerServiceWorker } from './core/registerServiceWorker.js';
 import { installGameTimerGuard } from './core/gameTimers.js';
 
