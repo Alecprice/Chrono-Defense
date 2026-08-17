@@ -26,10 +26,10 @@ function speak(text){if(!readEnabled()||!('speechSynthesis'in window))return;win
 function lossKey(world,map){return`chrono-junior-losses:${world}:${map}`}
 function getLosses(world,map){try{return Number(localStorage.getItem(lossKey(world,map))||0)}catch{return 0}}
 function setLosses(world,map,value){try{localStorage.setItem(lossKey(world,map),String(value))}catch{}}
-function firstRun(){try{return localStorage.getItem('chrono-welcome-seen')!=='1'}catch{return false}}
+function firstRun(){try{const save=loadSave();return save?.worlds?.['stone-age']?.tutorialComplete===true&&localStorage.getItem('chrono-welcome-seen')!=='1'}catch{return false}}
 function markWelcome(){try{localStorage.setItem('chrono-welcome-seen','1')}catch{}}
 export function KidPolishBridge(){const[on,setOn]=useState(()=>junior()),[battle,setBattle]=useState(()=>detectBattle()),[bossPrep,setBossPrep]=useState(null),[help,setHelp]=useState(false),[adaptiveCard,setAdaptiveCard]=useState(null),[assistArmed,setAssistArmed]=useState(false),[welcome,setWelcome]=useState(()=>firstRun());
- useEffect(()=>{const refresh=()=>setOn(junior());window.addEventListener('chrono:save',refresh);return()=>window.removeEventListener('chrono:save',refresh)},[]);
+ useEffect(()=>{const refresh=()=>{setOn(junior());if(firstRun())setWelcome(true)};window.addEventListener('chrono:save',refresh);return()=>window.removeEventListener('chrono:save',refresh)},[]);
  useEffect(()=>{if(!on)return;let last='',lostSeen=false,wonSeen=false;const tick=()=>{const current=detectBattle();setBattle(current);if(!current){last='';lostSeen=false;wonSeen=false;return}const key=`${current.world}-${current.map.number}`;if(key!==last){last=key;lostSeen=false;wonSeen=false;setAssistArmed(false);if(current.map.boss)setBossPrep({world:current.world,map:current.map});else setBossPrep(null);setAdaptiveCard(null)}const text=current.root.textContent??'';if(LOSS_RE.test(text)&&!lostSeen){lostSeen=true;const losses=getLosses(current.world,current.map.number)+1;setLosses(current.world,current.map.number,losses);if(adaptive()&&losses>=2)setAdaptiveCard({world:current.world,map:current.map,losses})}if(WIN_RE.test(text)&&!wonSeen){wonSeen=true;setLosses(current.world,current.map.number,0);clearAdaptiveAssist(current.world,current.map.number);setAssistArmed(false);setAdaptiveCard(null)}};tick();const id=setInterval(tick,700);return()=>clearInterval(id)},[on]);
  const matchups=useMemo(()=>battle?MATCHUPS[battle.world]??[]:[],[battle?.world]);if(!on)return null;
  return <>
