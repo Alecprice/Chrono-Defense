@@ -20,6 +20,7 @@ import { JuniorRewardBridge } from '../components/JuniorRewardBridge.jsx';
 import { KidSafeActionBridge } from '../components/KidSafeActionBridge.jsx';
 import { JuniorTrainingPath } from '../components/JuniorTrainingPath.jsx';
 import { JuniorEraProgression } from '../components/JuniorEraProgression.jsx';
+import { KidPolishBridge } from '../components/KidPolishBridge.jsx';
 
 export function App() {
   return (
@@ -44,6 +45,7 @@ export function App() {
         <KidSafeActionBridge />
         <JuniorTrainingPath />
         <JuniorEraProgression />
+        <KidPolishBridge />
       </FullscreenShell>
     </AppErrorBoundary>
   );
