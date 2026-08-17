@@ -10,4 +10,74 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo battle-resume-write-ok
+      - name: Patch Stone Age battle resume
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/components/StoneAgeBattleV3.jsx')
+          s=p.read_text()
+          s=s.replace("import { STARTING_RESOURCES, addResources, canAfford, spend } from '../core/economy.js';", "import { STARTING_RESOURCES, addResources, canAfford, spend } from '../core/economy.js';\nimport { checkpointMatches, clearBattleCheckpoint, saveBattleCheckpoint } from '../core/battleCheckpoint.js';")
+          s=s.replace("export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, onExit, onNextMap }) {", "export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, onExit, onNextMap, resumeCheckpoint = null }) {")
+          marker="  const allBuildables = useMemo(() => [...stoneAgeTowers, ...resourceStructures], []);\n\n"
+          if "const checkpoint = checkpointMatches" not in s:
+              s=s.replace(marker,marker+"  const checkpoint = checkpointMatches(resumeCheckpoint, 'stone-age', mapNumber, modeId) ? resumeCheckpoint : null;\n\n")
+          reps={
+              "  const [resources, setResources] = useState(() => scaledResources(mode.startingResources));":"  const [resources, setResources] = useState(() => checkpoint?.resources ?? scaledResources(mode.startingResources));",
+              "  const [villageHp, setVillageHp] = useState(MAX_VILLAGE_HP);":"  const [villageHp, setVillageHp] = useState(() => checkpoint?.villageHp ?? MAX_VILLAGE_HP);",
+              "  const [wave, setWave] = useState(1);":"  const [wave, setWave] = useState(() => checkpoint?.wave ?? 1);",
+              "  const [selected, setSelected] = useState('rock-thrower');":"  const [selected, setSelected] = useState(() => checkpoint?.selected ?? 'rock-thrower');",
+              "  const [placed, setPlaced] = useState({});":"  const [placed, setPlaced] = useState(() => checkpoint?.placed ?? {});",
+              "  const [selectedPlaced, setSelectedPlaced] = useState(null);":"  const [selectedPlaced, setSelectedPlaced] = useState(() => checkpoint?.selectedPlaced ?? null);",
+              "  const [enemies, setEnemies] = useState([]);":"  const [enemies, setEnemies] = useState(() => checkpoint?.enemies ?? []);",
+              "  const [running, setRunning] = useState(false);":"  const [running, setRunning] = useState(() => Boolean(checkpoint?.running));",
+              "  const [paused, setPaused] = useState(false);":"  const [paused, setPaused] = useState(() => Boolean(checkpoint?.running || checkpoint?.paused));",
+              "  const [speed, setSpeed] = useState(1);":"  const [speed, setSpeed] = useState(() => checkpoint?.speed ?? 1);",
+              "  const [status, setStatus] = useState('ready');":"  const [status, setStatus] = useState(() => checkpoint?.status ?? 'ready');",
+              "  const [kills, setKills] = useState(0);":"  const [kills, setKills] = useState(() => checkpoint?.kills ?? 0);",
+              "  const [message, setMessage] = useState('Build your defenses, inspect the terrain, then begin.');":"  const [message, setMessage] = useState(() => checkpoint ? 'Battle restored! Tap ▶ when you are ready.' : 'Build your defenses, inspect the terrain, then begin.');",
+              "  const [actionCooldown, setActionCooldown] = useState(0);":"  const [actionCooldown, setActionCooldown] = useState(() => checkpoint?.actionCooldown ?? 0);",
+              "  const [caveSealed, setCaveSealed] = useState(false);":"  const [caveSealed, setCaveSealed] = useState(() => Boolean(checkpoint?.caveSealed));",
+              "  const queueRef = useRef([]);":"  const queueRef = useRef(checkpoint?.queue ?? []);",
+              "  const cooldownRef = useRef({});":"  const cooldownRef = useRef(checkpoint?.cooldowns ?? {});",
+              "  const battleStatsRef = useRef(blankBattleStats());":"  const battleStatsRef = useRef(checkpoint?.battleStats ?? blankBattleStats());",
+              "  const oneTowerChoiceRef = useRef(null);":"  const oneTowerChoiceRef = useRef(checkpoint?.oneTowerChoice ?? null);"
+          }
+          for a,b in reps.items(): s=s.replace(a,b)
+          anchor="  useEffect(() => { waveRef.current = wave; }, [wave]);\n\n"
+          effect=("  useEffect(() => {\n"
+                  "    const writeCheckpoint = () => {\n"
+                  "      if (status === 'won' || status === 'lost') return;\n"
+                  "      saveBattleCheckpoint({worldId:'stone-age',mapNumber,modeId,resources:resourcesRef.current,villageHp:villageRef.current,wave:waveRef.current,selected,selectedPlaced,placed:placedRef.current,enemies:enemiesRef.current,running:runningRef.current,paused:pausedRef.current,speed,status,kills,queue:queueRef.current,cooldowns:cooldownRef.current,battleStats:battleStatsRef.current,oneTowerChoice:oneTowerChoiceRef.current,actionCooldown,caveSealed});\n"
+                  "    };\n"
+                  "    writeCheckpoint();\n"
+                  "    const timer=window.setInterval(writeCheckpoint,900);\n"
+                  "    const pagehide=()=>writeCheckpoint();\n"
+                  "    const visibility=()=>{if(document.visibilityState==='hidden')writeCheckpoint()};\n"
+                  "    window.addEventListener('pagehide',pagehide);\n"
+                  "    document.addEventListener('visibilitychange',visibility);\n"
+                  "    return()=>{window.clearInterval(timer);window.removeEventListener('pagehide',pagehide);document.removeEventListener('visibilitychange',visibility)};\n"
+                  "  }, [mapNumber,modeId,selected,selectedPlaced,speed,status,kills,actionCooldown,caveSealed]);\n\n")
+          if 'const writeCheckpoint = () =>' not in s: s=s.replace(anchor,anchor+effect)
+          s=s.replace("    finalizedRef.current = true;\n    syncRunning(false);\n    setStatus('won');", "    finalizedRef.current = true;\n    clearBattleCheckpoint();\n    syncRunning(false);\n    setStatus('won');")
+          s=s.replace("    syncRunning(false);\n    queueRef.current = [];\n    setStatus('lost');", "    clearBattleCheckpoint();\n    syncRunning(false);\n    queueRef.current = [];\n    setStatus('lost');")
+          p.write_text(s)
+          p=Path('src/components/StoneAgeExperience.jsx')
+          s=p.read_text()
+          s=s.replace("import { objectiveAwareBattleSetter } from '../core/eraStats.js';", "import { objectiveAwareBattleSetter } from '../core/eraStats.js';\nimport { clearBattleCheckpoint, loadBattleCheckpoint } from '../core/battleCheckpoint.js';")
+          s=s.replace("  const stone=save.worlds['stone-age'];\n  const [screen,setScreen]=useState('campaign');\n  const [selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,stone.highestMap??1)));\n  const [selectedMode,setSelectedMode]=useState('normal');", "  const stone=save.worlds['stone-age'];\n  const [resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('stone-age'));\n  const [screen,setScreen]=useState(()=>stone.tutorialComplete&&resumeCheckpoint?'battle':'campaign');\n  const [selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,stone.highestMap??1)));\n  const [selectedMode,setSelectedMode]=useState(()=>resumeCheckpoint?.modeId??'normal');")
+          s=s.replace("  const enterBattle=()=>{setBattleKey(value=>value+1);setScreen('battle')};", "  const enterBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setBattleKey(value=>value+1);setScreen('battle')};")
+          s=s.replace("  const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};", "  const exitBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};")
+          s=s.replace("  const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};", "  const nextMap=next=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};")
+          if 'resumeCheckpoint={resumeCheckpoint}' not in s:
+              s=s.replace("      onNextMap={nextMap}\n    />}", "      onNextMap={nextMap}\n      resumeCheckpoint={resumeCheckpoint}\n    />}")
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/StoneAgeBattleV3.jsx src/components/StoneAgeExperience.jsx
+          if ! git diff --cached --quiet; then
+            git commit -m "Add Stone Age battle autosave and resume"
+            git push
+          fi
