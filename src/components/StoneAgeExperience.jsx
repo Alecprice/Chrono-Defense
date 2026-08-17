@@ -11,12 +11,13 @@ import { StoneAgeTutorial } from './StoneAgeTutorial.jsx';
 import { GameSettings } from './GameSettings.jsx';
 import { StoneAgeStats } from './StoneAgeStats.jsx';
 import { SaveManager } from './SaveManager.jsx';
+import { ResumeBattlePrompt } from './ResumeBattlePrompt.jsx';
 
 export function StoneAgeExperience({onSwitchWorld}) {
   const [save,setSave]=useState(()=>loadSave());
   const stone=save.worlds['stone-age'];
   const [resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('stone-age'));
-  const [screen,setScreen]=useState(()=>stone.tutorialComplete&&resumeCheckpoint?'battle':'campaign');
+  const [screen,setScreen]=useState(()=>stone.tutorialComplete&&resumeCheckpoint?'resume':'campaign');
   const [selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,stone.highestMap??1)));
   const [selectedMode,setSelectedMode]=useState(()=>resumeCheckpoint?.modeId??'normal');
   const [battleKey,setBattleKey]=useState(0);
@@ -59,17 +60,30 @@ export function StoneAgeExperience({onSwitchWorld}) {
   const enterBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setBattleKey(value=>value+1);setScreen('battle')};
   const exitBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const nextMap=next=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
+  const continueRecoveredBattle=()=>setScreen('battle');
+  const startRecoveredFresh=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setBattleKey(value=>value+1);setScreen('battle')};
+  const discardRecoveredBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
   const finishTutorial=()=>{
     setScreen('campaign');
     setSelectedMode('normal');
     setSave(prev=>{const old=prev.worlds['stone-age'];return {...prev,worlds:{...prev.worlds,'stone-age':{...old,tutorialComplete:true}}}});
   };
-  const launchDaily=challenge=>{setSelectedMap(challenge.mapNumber);setSelectedMode(challenge.modeId);setBattleKey(value=>value+1);setScreen('battle')};
-  const replaceSave=next=>{setSave(next);setSelectedMap(Math.min(25,Math.max(1,next.worlds['stone-age'].highestMap??1)));setSelectedMode('normal')};
+  const launchDaily=challenge=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(challenge.mapNumber);setSelectedMode(challenge.modeId);setBattleKey(value=>value+1);setScreen('battle')};
+  const replaceSave=next=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSave(next);setSelectedMap(Math.min(25,Math.max(1,next.worlds['stone-age'].highestMap??1)));setSelectedMode('normal');setScreen('campaign')};
 
   if(!stone.tutorialComplete){
     return <StoneAgeTutorial onComplete={finishTutorial}/>;
+  }
+
+  if(screen==='resume'&&resumeCheckpoint){
+    return <ResumeBattlePrompt
+      worldId="stone-age"
+      checkpoint={resumeCheckpoint}
+      onContinue={continueRecoveredBattle}
+      onFresh={startRecoveredFresh}
+      onCampaign={discardRecoveredBattle}
+    />;
   }
 
   return <>
