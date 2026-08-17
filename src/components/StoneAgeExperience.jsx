@@ -12,6 +12,7 @@ import { GameSettings } from './GameSettings.jsx';
 import { StoneAgeStats } from './StoneAgeStats.jsx';
 import { SaveManager } from './SaveManager.jsx';
 import { ResumeBattlePrompt } from './ResumeBattlePrompt.jsx';
+import { AchievementBookGrid } from './AchievementBookGrid.jsx';
 
 export function StoneAgeExperience({onSwitchWorld}) {
   const [save,setSave]=useState(()=>loadSave());
@@ -115,10 +116,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
       <div className="achievement-book" role="dialog" aria-modal="true" aria-labelledby="stone-achievement-title" onClick={event=>event.stopPropagation()}>
         <div className="achievement-book-head"><div><small>STONE AGE MASTERY</small><h2 id="stone-achievement-title">Achievements</h2></div><b>{unlockedSet.size}/100</b><button aria-label="Close achievements" onClick={()=>setShowAchievements(false)}>×</button></div>
-        <div className="achievement-grid">{stoneAgeAchievements.map(item=>{
-          const unlocked=unlockedSet.has(item.id);
-          return <div key={item.id} className={`achievement-card ${unlocked?'unlocked':'locked'}`}><span>{unlocked?item.icon:'?'}</span><div><b>{unlocked?item.name:'Hidden Challenge'}</b><small>{unlocked?item.description:'Keep playing Stone Age to discover this achievement.'}</small></div></div>
-        })}</div>
+        <AchievementBookGrid achievements={stoneAgeAchievements} unlockedSet={unlockedSet}/>
       </div>
     </div>}
 
