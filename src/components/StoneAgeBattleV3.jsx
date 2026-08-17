@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { STARTING_RESOURCES, addResources, canAfford, spend } from '../core/economy.js';
+import { checkpointMatches, clearBattleCheckpoint, saveBattleCheckpoint } from '../core/battleCheckpoint.js';
 import { chooseTarget, damageVillage, distance, towerStats, upgradeCost } from '../core/combat.js';
 import { applyStoneAgeAttack, shieldWallMultiplier } from '../core/stoneAgeRuntime.js';
 import { mapTotems, masteryReward } from '../core/progression.js';
@@ -130,7 +131,7 @@ function mergeStats(oldStats = {}, battle = {}, modeName = null) {
   };
 }
 
-export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, onExit, onNextMap }) {
+export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, onExit, onNextMap, resumeCheckpoint = null }) {
   const mode = modeById(modeId);
   const waveLimit = mode.waves;
   const stoneSave = save.worlds['stone-age'];
@@ -145,23 +146,25 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
   );
   const allBuildables = useMemo(() => [...stoneAgeTowers, ...resourceStructures], []);
 
-  const [resources, setResources] = useState(() => scaledResources(mode.startingResources));
-  const [villageHp, setVillageHp] = useState(MAX_VILLAGE_HP);
-  const [wave, setWave] = useState(1);
-  const [selected, setSelected] = useState('rock-thrower');
-  const [placed, setPlaced] = useState({});
-  const [selectedPlaced, setSelectedPlaced] = useState(null);
-  const [enemies, setEnemies] = useState([]);
-  const [running, setRunning] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [status, setStatus] = useState('ready');
-  const [kills, setKills] = useState(0);
-  const [message, setMessage] = useState('Build your defenses, inspect the terrain, then begin.');
+  const checkpoint = checkpointMatches(resumeCheckpoint, 'stone-age', mapNumber, modeId) ? resumeCheckpoint : null;
+
+  const [resources, setResources] = useState(() => checkpoint?.resources ?? scaledResources(mode.startingResources));
+  const [villageHp, setVillageHp] = useState(() => checkpoint?.villageHp ?? MAX_VILLAGE_HP);
+  const [wave, setWave] = useState(() => checkpoint?.wave ?? 1);
+  const [selected, setSelected] = useState(() => checkpoint?.selected ?? 'rock-thrower');
+  const [placed, setPlaced] = useState(() => checkpoint?.placed ?? {});
+  const [selectedPlaced, setSelectedPlaced] = useState(() => checkpoint?.selectedPlaced ?? null);
+  const [enemies, setEnemies] = useState(() => checkpoint?.enemies ?? []);
+  const [running, setRunning] = useState(() => Boolean(checkpoint?.running));
+  const [paused, setPaused] = useState(() => Boolean(checkpoint?.running || checkpoint?.paused));
+  const [speed, setSpeed] = useState(() => checkpoint?.speed ?? 1);
+  const [status, setStatus] = useState(() => checkpoint?.status ?? 'ready');
+  const [kills, setKills] = useState(() => checkpoint?.kills ?? 0);
+  const [message, setMessage] = useState(() => checkpoint ? 'Battle restored! Tap ▶ when you are ready.' : 'Build your defenses, inspect the terrain, then begin.');
   const [drag, setDrag] = useState(null);
   const [effects, setEffects] = useState([]);
-  const [actionCooldown, setActionCooldown] = useState(0);
-  const [caveSealed, setCaveSealed] = useState(false);
+  const [actionCooldown, setActionCooldown] = useState(() => checkpoint?.actionCooldown ?? 0);
+  const [caveSealed, setCaveSealed] = useState(() => Boolean(checkpoint?.caveSealed));
 
   const resourcesRef = useRef(resources);
   const villageRef = useRef(villageHp);
@@ -170,11 +173,11 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
   const runningRef = useRef(running);
   const pausedRef = useRef(paused);
   const waveRef = useRef(wave);
-  const queueRef = useRef([]);
-  const cooldownRef = useRef({});
-  const battleStatsRef = useRef(blankBattleStats());
+  const queueRef = useRef(checkpoint?.queue ?? []);
+  const cooldownRef = useRef(checkpoint?.cooldowns ?? {});
+  const battleStatsRef = useRef(checkpoint?.battleStats ?? blankBattleStats());
   const finalizedRef = useRef(false);
-  const oneTowerChoiceRef = useRef(null);
+  const oneTowerChoiceRef = useRef(checkpoint?.oneTowerChoice ?? null);
   const orientationBlockedRef = useRef(false);
   const placeBuildableRef = useRef(null);
   const effectsRef = useRef([]);
@@ -193,6 +196,20 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
   useEffect(() => { waveRef.current = wave; }, [wave]);
+
+  useEffect(() => {
+    const writeCheckpoint = () => {
+      if (status === 'won' || status === 'lost') return;
+      saveBattleCheckpoint({worldId:'stone-age',mapNumber,modeId,resources:resourcesRef.current,villageHp:villageRef.current,wave:waveRef.current,selected,selectedPlaced,placed:placedRef.current,enemies:enemiesRef.current,running:runningRef.current,paused:pausedRef.current,speed,status,kills,queue:queueRef.current,cooldowns:cooldownRef.current,battleStats:battleStatsRef.current,oneTowerChoice:oneTowerChoiceRef.current,actionCooldown,caveSealed});
+    };
+    writeCheckpoint();
+    const timer=window.setInterval(writeCheckpoint,900);
+    const pagehide=()=>writeCheckpoint();
+    const visibility=()=>{if(document.visibilityState==='hidden')writeCheckpoint()};
+    window.addEventListener('pagehide',pagehide);
+    document.addEventListener('visibilitychange',visibility);
+    return()=>{window.clearInterval(timer);window.removeEventListener('pagehide',pagehide);document.removeEventListener('visibilitychange',visibility)};
+  }, [mapNumber,modeId,selected,selectedPlaced,speed,status,kills,actionCooldown,caveSealed]);
 
   useEffect(() => {
     const handler = (event) => {
@@ -230,6 +247,7 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
   const completeMap = () => {
     if (finalizedRef.current) return;
     finalizedRef.current = true;
+    clearBattleCheckpoint();
     syncRunning(false);
     setStatus('won');
     const combatCount = Object.values(placedRef.current).filter((item) => isCombat(item.id)).length;
@@ -268,6 +286,7 @@ export function StoneAgeBattleV3({ mapNumber, modeId = 'normal', save, setSave, 
 
   const failMap = () => {
     if (finalizedRef.current) return;
+    clearBattleCheckpoint();
     syncRunning(false);
     queueRef.current = [];
     setStatus('lost');

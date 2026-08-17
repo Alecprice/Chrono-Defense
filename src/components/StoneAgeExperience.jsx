@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { loadSave, persistSave } from '../core/save.js';
 import { objectiveAwareBattleSetter } from '../core/eraStats.js';
+import { clearBattleCheckpoint, loadBattleCheckpoint } from '../core/battleCheckpoint.js';
 import { stoneAgeAchievements, newlyUnlockedAchievements } from '../data/worlds/stoneAge/achievements.js';
 import { stoneAgeModes } from '../data/worlds/stoneAge/modes.js';
 import { StoneAgeCampaign } from './StoneAgeCampaign.jsx';
@@ -14,9 +15,10 @@ import { SaveManager } from './SaveManager.jsx';
 export function StoneAgeExperience({onSwitchWorld}) {
   const [save,setSave]=useState(()=>loadSave());
   const stone=save.worlds['stone-age'];
-  const [screen,setScreen]=useState('campaign');
-  const [selectedMap,setSelectedMap]=useState(()=>Math.min(25,Math.max(1,stone.highestMap??1)));
-  const [selectedMode,setSelectedMode]=useState('normal');
+  const [resumeCheckpoint,setResumeCheckpoint]=useState(()=>loadBattleCheckpoint('stone-age'));
+  const [screen,setScreen]=useState(()=>stone.tutorialComplete&&resumeCheckpoint?'battle':'campaign');
+  const [selectedMap,setSelectedMap]=useState(()=>resumeCheckpoint?.mapNumber??Math.min(25,Math.max(1,stone.highestMap??1)));
+  const [selectedMode,setSelectedMode]=useState(()=>resumeCheckpoint?.modeId??'normal');
   const [battleKey,setBattleKey]=useState(0);
   const [showAchievements,setShowAchievements]=useState(false);
   const [showCodex,setShowCodex]=useState(false);
@@ -54,9 +56,9 @@ export function StoneAgeExperience({onSwitchWorld}) {
   useEffect(()=>{if(!achievementToast)return;const timer=setTimeout(()=>setAchievementToast(null),4200);return()=>clearTimeout(timer)},[achievementToast]);
 
   const unlockedSet=useMemo(()=>new Set(stone.achievements??[]),[stone.achievements]);
-  const enterBattle=()=>{setBattleKey(value=>value+1);setScreen('battle')};
-  const exitBattle=()=>{setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
-  const nextMap=next=>{setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
+  const enterBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setBattleKey(value=>value+1);setScreen('battle')};
+  const exitBattle=()=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(Math.min(25,Math.max(1,save.worlds['stone-age'].highestMap??selectedMap)));setScreen('campaign')};
+  const nextMap=next=>{clearBattleCheckpoint();setResumeCheckpoint(null);setSelectedMap(next);setBattleKey(value=>value+1);setScreen('battle')};
   const updateSettings=settings=>setSave(prev=>({...prev,settings}));
   const finishTutorial=()=>{
     setScreen('campaign');
@@ -93,6 +95,7 @@ export function StoneAgeExperience({onSwitchWorld}) {
       setSave={battleSetSave}
       onExit={exitBattle}
       onNextMap={nextMap}
+      resumeCheckpoint={resumeCheckpoint}
     />}
 
     {showAchievements&&<div className="achievement-overlay" onClick={()=>setShowAchievements(false)}>
