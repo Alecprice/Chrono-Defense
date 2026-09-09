@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-
-const OFFLINE_CACHE_VERSION='chrono-defense-shell-v31';
-const OFFLINE_READY_SENTINEL='/__chrono-offline-ready-v31';
-const OFFLINE_READY_KEY='chrono-defense-offline-ready-cache';
-function storedOfflineReady(){try{return localStorage.getItem(OFFLINE_READY_KEY)===OFFLINE_CACHE_VERSION}catch{return false}}
+import {
+  OFFLINE_CACHE_VERSION,
+  OFFLINE_READY_KEY,
+  OFFLINE_READY_SENTINEL,
+  clearStoredOfflineReady,
+  offlineReadinessReconcile,
+  storedOfflineReady,
+} from '../core/offlineReadiness.js';
 
 export function AppStatus(){
   const [online,setOnline]=useState(()=>typeof navigator==='undefined'?true:navigator.onLine);
@@ -20,7 +23,7 @@ export function AppStatus(){
   useEffect(()=>{
     let disposed=false,cacheTimer=0,statusTimer=0;
     const markReady=cache=>{if(disposed)return;setOfflineLoading(false);setOfflineProgress(100);setOfflineReady(true);try{localStorage.setItem(OFFLINE_READY_KEY,cache??OFFLINE_CACHE_VERSION)}catch{}};
-    const markNotReady=()=>{if(disposed||storedOfflineReady())return;setOfflineReady(false);setOfflineLoading(false)};
+    const markNotReady=()=>{if(disposed)return;clearStoredOfflineReady();setOfflineReady(false);setOfflineLoading(false)};
     const onOnline=()=>setOnline(true),onOffline=()=>setOnline(false);
     const onPrompt=event=>{event.preventDefault();setInstallEvent(event)};
     const onInstalled=()=>{setInstalled(true);setInstallEvent(null)};
@@ -33,7 +36,21 @@ export function AppStatus(){
     const onSaveError=event=>{if(saveTimer.current)clearTimeout(saveTimer.current);setSaved(true);setSaveError(event.detail?.message||'Progress is not being saved on this device.')};
     const onWorkerMessage=event=>{if(event.data?.type==='CHRONO_OFFLINE_READY')markReady(event.data?.cache);if(event.data?.type==='CHRONO_OFFLINE_NOT_READY')markNotReady()};
     const activeWorker=async()=>{try{const registration=await navigator.serviceWorker.ready;return registration.active??navigator.serviceWorker.controller}catch{return navigator.serviceWorker.controller}};
-    const verifyCache=async()=>{if(disposed)return;try{if('caches'in window){const cache=await caches.open(OFFLINE_CACHE_VERSION);const ready=await cache.match(new URL(OFFLINE_READY_SENTINEL,location.origin).href);if(ready){markReady(OFFLINE_CACHE_VERSION);return}}}catch{}if(!disposed)cacheTimer=window.setTimeout(verifyCache,500)};
+    const requestPrecache=async()=>{const worker=await activeWorker();if(disposed)return;worker?.postMessage('PRECACHE_ALL');if(!worker)setOfflineLoading(false)};
+    const verifyCache=async()=>{
+      if(disposed)return;
+      const storedReady=storedOfflineReady();
+      try{
+        if('caches'in window){
+          const cache=await caches.open(OFFLINE_CACHE_VERSION);
+          const ready=await cache.match(new URL(OFFLINE_READY_SENTINEL,location.origin).href);
+          const result=offlineReadinessReconcile({storedReady,cacheReady:Boolean(ready)});
+          if(result.ready){markReady(OFFLINE_CACHE_VERSION);return}
+          if(result.staleMarker){clearStoredOfflineReady();setOfflineReady(false);setOfflineLoading(true);setOfflineProgress(0);requestPrecache()}
+        }
+      }catch{}
+      if(!disposed)cacheTimer=window.setTimeout(verifyCache,500);
+    };
     const probeWorker=async()=>{if(disposed||storedOfflineReady())return;const worker=await activeWorker();worker?.postMessage('GET_OFFLINE_STATUS');if(!disposed&&!storedOfflineReady())statusTimer=window.setTimeout(probeWorker,700)};
 
     window.addEventListener('online',onOnline);window.addEventListener('offline',onOffline);window.addEventListener('beforeinstallprompt',onPrompt);window.addEventListener('appinstalled',onInstalled);window.addEventListener('chrono:sw-update',onUpdate);window.addEventListener('chrono:offline-preload-start',onPreloadStart);window.addEventListener('chrono:offline-progress',onOfflineProgress);window.addEventListener('chrono:offline-ready',onOfflineReady);window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);window.addEventListener('chrono:save',onSaved);window.addEventListener('chrono:checkpoint-saved',onSaved);window.addEventListener('chrono:save-error',onSaveError);
@@ -44,7 +61,7 @@ export function AppStatus(){
   },[]);
 
   const install=async()=>{if(!installEvent)return;await installEvent.prompt();const choice=await installEvent.userChoice;if(choice?.outcome==='accepted')setInstallEvent(null)};
-  const downloadOffline=async()=>{if(!online||!('serviceWorker'in navigator))return;setOfflineLoading(true);setOfflineProgress(0);setOfflineReady(false);try{localStorage.removeItem(OFFLINE_READY_KEY)}catch{}window.dispatchEvent(new CustomEvent('chrono:offline-preload-start'));try{const registration=await navigator.serviceWorker.ready;(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}catch{setOfflineLoading(false)}};
+  const downloadOffline=async()=>{if(!online||!('serviceWorker'in navigator))return;setOfflineLoading(true);setOfflineProgress(0);setOfflineReady(false);clearStoredOfflineReady();window.dispatchEvent(new CustomEvent('chrono:offline-preload-start'));try{const registration=await navigator.serviceWorker.ready;(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}catch{setOfflineLoading(false)}};
   const applyUpdate=()=>{const worker=updateRegistration?.waiting;if(!worker)return;let reloaded=false;navigator.serviceWorker?.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()},{once:true});worker.postMessage('SKIP_WAITING')};
 
   return <div className="app-status" aria-live="polite">
