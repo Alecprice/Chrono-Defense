@@ -45,13 +45,17 @@ test('fully precached build reloads while browser is offline',async({browser})=>
 
 test('blocked save storage shows a persistent not-saved warning',async({page})=>{
  const unlocked={...readySave,worlds:{...readySave.worlds,'stone-age':{...readySave.worlds['stone-age'],highestMap:25,completedMap:25},retro:{unlocked:true,highestMap:1,completedMap:0,cartridges:0,mastery:0,tutorialComplete:true,best:{},achievements:[],stats:{}}}};
- await page.addInitScript(({key,value})=>{localStorage.setItem(key,JSON.stringify(value));localStorage.setItem('chrono-welcome-seen','1')},{key:saveKey,value:unlocked});
+ await setReadySave(page);
  await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();
+ await page.evaluate(({key,value})=>localStorage.setItem(key,JSON.stringify(value)),{key:saveKey,value:unlocked});
+ await page.getByRole('button',{name:'Open timeline menu'}).click();
+ const retro=page.getByRole('menuitem',{name:/Retro/});
+ await expect(retro).toBeEnabled();
  await page.evaluate(key=>{
    const original=Storage.prototype.setItem;
    Storage.prototype.setItem=function(storageKey,storageValue){if(storageKey===key)throw new DOMException('Storage blocked','QuotaExceededError');return original.call(this,storageKey,storageValue)};
  },saveKey);
- await page.locator('.era-road .era-button').click();
+ await retro.click();
  const warning=page.locator('.save-pill.error');
  await expect(warning).toHaveText(/Not Saved/);
  await expect(warning).toHaveAttribute('title',/could not be saved/i);
