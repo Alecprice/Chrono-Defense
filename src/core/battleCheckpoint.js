@@ -2,7 +2,13 @@ export const BATTLE_CHECKPOINT_KEY='chrono-defense-battle-checkpoint-v1';
 const MAX_AGE_MS=24*60*60*1000;
 function storage(){try{return globalThis.localStorage??null}catch{return null}}
 function announce(type,detail={}){try{globalThis.dispatchEvent?.(new CustomEvent(type,{detail}))}catch{}}
-export function saveBattleCheckpoint(checkpoint){try{const value={...checkpoint,version:1,savedAt:Date.now()};storage()?.setItem(BATTLE_CHECKPOINT_KEY,JSON.stringify(value));announce('chrono:checkpoint-saved',{checkpoint:value,savedAt:value.savedAt});return value}catch{return null}}
-export function loadBattleCheckpoint(worldId=null){try{const raw=storage()?.getItem(BATTLE_CHECKPOINT_KEY);if(!raw)return null;const value=JSON.parse(raw);const savedAt=Number(value?.savedAt),age=Date.now()-savedAt;const validWorld=typeof value?.worldId==='string'&&value.worldId.trim().length>0;const validMap=typeof value?.mapNumber==='number'&&Number.isInteger(value.mapNumber)&&value.mapNumber>0;const validTimestamp=Number.isFinite(savedAt)&&savedAt>0&&age>=0&&age<=MAX_AGE_MS;if(value?.version!==1||!validWorld||!validMap||!validTimestamp){clearBattleCheckpoint();return null}if(worldId&&value.worldId!==worldId)return null;return value}catch{clearBattleCheckpoint();return null}}
+function isCheckpointObject(value){return Boolean(value)&&typeof value==='object'&&!Array.isArray(value)}
+function hasValidCheckpointIdentity(value){return isCheckpointObject(value)&&typeof value.worldId==='string'&&value.worldId.trim().length>0&&typeof value.mapNumber==='number'&&Number.isInteger(value.mapNumber)&&value.mapNumber>0}
+export function saveBattleCheckpoint(checkpoint){
+  if(!hasValidCheckpointIdentity(checkpoint))return null;
+  if(checkpoint.modeId!==undefined&&(typeof checkpoint.modeId!=='string'||checkpoint.modeId.trim().length===0))return null;
+  try{const value={...checkpoint,worldId:checkpoint.worldId.trim(),...(typeof checkpoint.modeId==='string'?{modeId:checkpoint.modeId.trim()}:{}),version:1,savedAt:Date.now()};storage()?.setItem(BATTLE_CHECKPOINT_KEY,JSON.stringify(value));announce('chrono:checkpoint-saved',{checkpoint:value,savedAt:value.savedAt});return value}catch{return null}
+}
+export function loadBattleCheckpoint(worldId=null){try{const raw=storage()?.getItem(BATTLE_CHECKPOINT_KEY);if(!raw)return null;const value=JSON.parse(raw);const savedAt=Number(value?.savedAt),age=Date.now()-savedAt;const validTimestamp=Number.isFinite(savedAt)&&savedAt>0&&age>=0&&age<=MAX_AGE_MS;if(value?.version!==1||!hasValidCheckpointIdentity(value)||!validTimestamp){clearBattleCheckpoint();return null}if(worldId&&value.worldId!==worldId)return null;return value}catch{clearBattleCheckpoint();return null}}
 export function clearBattleCheckpoint(){try{storage()?.removeItem(BATTLE_CHECKPOINT_KEY);announce('chrono:checkpoint-cleared')}catch{}}
 export function checkpointMatches(checkpoint,worldId,mapNumber,modeId='normal'){return Boolean(checkpoint&&checkpoint.worldId===worldId&&Number(checkpoint.mapNumber)===Number(mapNumber)&&(checkpoint.modeId??'normal')===modeId)}

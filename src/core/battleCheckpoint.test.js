@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {BATTLE_CHECKPOINT_KEY,loadBattleCheckpoint} from './battleCheckpoint.js';
+import {BATTLE_CHECKPOINT_KEY,loadBattleCheckpoint,saveBattleCheckpoint} from './battleCheckpoint.js';
 
 const NOW=Date.UTC(2026,8,9,18,45,0);
 const MAX_AGE_MS=24*60*60*1000;
@@ -49,6 +49,31 @@ test('battle checkpoint loader accepts only fresh structurally valid checkpoints
     store.setItem(BATTLE_CHECKPOINT_KEY,'{"broken"');
     assert.equal(loadBattleCheckpoint(),null);
     assert.equal(store.getItem(BATTLE_CHECKPOINT_KEY),null,'malformed JSON must be cleared');
+  }finally{
+    Date.now=originalNow;
+    if(originalDescriptor)Object.defineProperty(globalThis,'localStorage',originalDescriptor);
+    else delete globalThis.localStorage;
+  }
+});
+
+test('checkpoint saver rejects malformed identities without replacing recoverable progress',()=>{
+  const originalNow=Date.now;
+  const originalDescriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+  const store=memoryStorage();
+  Object.defineProperty(globalThis,'localStorage',{value:store,configurable:true});
+  Date.now=()=>NOW;
+  try{
+    const saved=saveBattleCheckpoint({worldId:' stone-age ',mapNumber:7,modeId:' normal ',gold:25});
+    assert.equal(saved.worldId,'stone-age');
+    assert.equal(saved.modeId,'normal');
+    assert.equal(saved.version,1);
+    assert.equal(saved.savedAt,NOW);
+    const durable=store.getItem(BATTLE_CHECKPOINT_KEY);
+
+    for(const invalid of [null,[],true,'checkpoint',{}, {worldId:'',mapNumber:7}, {worldId:'stone-age',mapNumber:'7'}, {worldId:'stone-age',mapNumber:0}, {worldId:'stone-age',mapNumber:1.5}, {worldId:'stone-age',mapNumber:7,modeId:''}, {worldId:'stone-age',mapNumber:7,modeId:42}]){
+      assert.equal(saveBattleCheckpoint(invalid),null);
+      assert.equal(store.getItem(BATTLE_CHECKPOINT_KEY),durable,'invalid writes must leave the previous checkpoint untouched');
+    }
   }finally{
     Date.now=originalNow;
     if(originalDescriptor)Object.defineProperty(globalThis,'localStorage',originalDescriptor);
