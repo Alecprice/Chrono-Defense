@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/generate-precache.mjs",
+    "build": "npm run test:core && vite build && node scripts/generate-precache.mjs",
     "preview": "vite preview --host 0.0.0.0",
+    "test:core": "node --test src/core/*.test.js",
     "test:e2e": "playwright test",
     "smoke:prod": "node scripts/smoke-production.mjs"
   },
