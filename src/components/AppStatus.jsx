@@ -14,6 +14,7 @@ export function AppStatus(){
   const [offlineLoading,setOfflineLoading]=useState(()=>!storedOfflineReady());
   const [offlineProgress,setOfflineProgress]=useState(0);
   const [saved,setSaved]=useState(true);
+  const [saveError,setSaveError]=useState('');
   const saveTimer=useRef(null);
 
   useEffect(()=>{
@@ -28,17 +29,18 @@ export function AppStatus(){
     const onOfflineProgress=event=>{const done=Number(event.detail?.done??0),total=Number(event.detail?.total??0);if(!storedOfflineReady()){setOfflineLoading(true);setOfflineReady(false)}if(total>0)setOfflineProgress(Math.max(0,Math.min(100,Math.round(done/total*100))))};
     const onOfflineReady=event=>markReady(event.detail?.cache);
     const onOfflineUnavailable=()=>setOfflineLoading(false);
-    const onSaved=()=>{setSaved(false);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(()=>setSaved(true),450)};
+    const onSaved=()=>{setSaveError('');setSaved(false);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(()=>setSaved(true),450)};
+    const onSaveError=event=>{if(saveTimer.current)clearTimeout(saveTimer.current);setSaved(true);setSaveError(event.detail?.message||'Progress is not being saved on this device.')};
     const onWorkerMessage=event=>{if(event.data?.type==='CHRONO_OFFLINE_READY')markReady(event.data?.cache);if(event.data?.type==='CHRONO_OFFLINE_NOT_READY')markNotReady()};
     const activeWorker=async()=>{try{const registration=await navigator.serviceWorker.ready;return registration.active??navigator.serviceWorker.controller}catch{return navigator.serviceWorker.controller}};
     const verifyCache=async()=>{if(disposed)return;try{if('caches'in window){const cache=await caches.open(OFFLINE_CACHE_VERSION);const ready=await cache.match(new URL(OFFLINE_READY_SENTINEL,location.origin).href);if(ready){markReady(OFFLINE_CACHE_VERSION);return}}}catch{}if(!disposed)cacheTimer=window.setTimeout(verifyCache,500)};
     const probeWorker=async()=>{if(disposed||storedOfflineReady())return;const worker=await activeWorker();worker?.postMessage('GET_OFFLINE_STATUS');if(!disposed&&!storedOfflineReady())statusTimer=window.setTimeout(probeWorker,700)};
 
-    window.addEventListener('online',onOnline);window.addEventListener('offline',onOffline);window.addEventListener('beforeinstallprompt',onPrompt);window.addEventListener('appinstalled',onInstalled);window.addEventListener('chrono:sw-update',onUpdate);window.addEventListener('chrono:offline-preload-start',onPreloadStart);window.addEventListener('chrono:offline-progress',onOfflineProgress);window.addEventListener('chrono:offline-ready',onOfflineReady);window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);window.addEventListener('chrono:save',onSaved);window.addEventListener('chrono:checkpoint-saved',onSaved);
+    window.addEventListener('online',onOnline);window.addEventListener('offline',onOffline);window.addEventListener('beforeinstallprompt',onPrompt);window.addEventListener('appinstalled',onInstalled);window.addEventListener('chrono:sw-update',onUpdate);window.addEventListener('chrono:offline-preload-start',onPreloadStart);window.addEventListener('chrono:offline-progress',onOfflineProgress);window.addEventListener('chrono:offline-ready',onOfflineReady);window.addEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);window.addEventListener('chrono:save',onSaved);window.addEventListener('chrono:checkpoint-saved',onSaved);window.addEventListener('chrono:save-error',onSaveError);
     navigator.serviceWorker?.addEventListener('message',onWorkerMessage);
     verifyCache();probeWorker();
     if(!storedOfflineReady()&&'serviceWorker'in navigator){navigator.serviceWorker.ready.then(registration=>{(registration.active??navigator.serviceWorker.controller)?.postMessage('PRECACHE_ALL')}).catch(()=>{})}
-    return()=>{disposed=true;if(cacheTimer)window.clearTimeout(cacheTimer);if(statusTimer)window.clearTimeout(statusTimer);if(saveTimer.current)clearTimeout(saveTimer.current);window.removeEventListener('online',onOnline);window.removeEventListener('offline',onOffline);window.removeEventListener('beforeinstallprompt',onPrompt);window.removeEventListener('appinstalled',onInstalled);window.removeEventListener('chrono:sw-update',onUpdate);window.removeEventListener('chrono:offline-preload-start',onPreloadStart);window.removeEventListener('chrono:offline-progress',onOfflineProgress);window.removeEventListener('chrono:offline-ready',onOfflineReady);window.removeEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);window.removeEventListener('chrono:save',onSaved);window.removeEventListener('chrono:checkpoint-saved',onSaved);navigator.serviceWorker?.removeEventListener('message',onWorkerMessage)};
+    return()=>{disposed=true;if(cacheTimer)window.clearTimeout(cacheTimer);if(statusTimer)window.clearTimeout(statusTimer);if(saveTimer.current)clearTimeout(saveTimer.current);window.removeEventListener('online',onOnline);window.removeEventListener('offline',onOffline);window.removeEventListener('beforeinstallprompt',onPrompt);window.removeEventListener('appinstalled',onInstalled);window.removeEventListener('chrono:sw-update',onUpdate);window.removeEventListener('chrono:offline-preload-start',onPreloadStart);window.removeEventListener('chrono:offline-progress',onOfflineProgress);window.removeEventListener('chrono:offline-ready',onOfflineReady);window.removeEventListener('chrono:offline-preload-unavailable',onOfflineUnavailable);window.removeEventListener('chrono:save',onSaved);window.removeEventListener('chrono:checkpoint-saved',onSaved);window.removeEventListener('chrono:save-error',onSaveError);navigator.serviceWorker?.removeEventListener('message',onWorkerMessage)};
   },[]);
 
   const install=async()=>{if(!installEvent)return;await installEvent.prompt();const choice=await installEvent.userChoice;if(choice?.outcome==='accepted')setInstallEvent(null)};
@@ -46,7 +48,7 @@ export function AppStatus(){
   const applyUpdate=()=>{const worker=updateRegistration?.waiting;if(!worker)return;let reloaded=false;navigator.serviceWorker?.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()},{once:true});worker.postMessage('SKIP_WAITING')};
 
   return <div className="app-status" aria-live="polite">
-    <span className={`save-pill ${saved?'ready':'working'}`}>{saved?'💾 Saved ✓':'💾 Saving…'}</span>
+    {saveError?<span className="save-pill error" role="status" title={saveError}>⚠️ Not Saved</span>:<span className={`save-pill ${saved?'ready':'working'}`}>{saved?'💾 Saved ✓':'💾 Saving…'}</span>}
     {offlineReady?<span className="offline-ready-pill">📦 Offline Ready ✓</span>:offlineLoading?<span className="offline-loading-pill">📦 Downloading {offlineProgress}%</span>:online?<button className="offline-download-pill" onClick={downloadOffline}>⬇ Download Offline</button>:null}
     {!online&&<span className="offline-pill">📴 Offline Mode</span>}
     {updateRegistration?.waiting&&<button className="update-pill" onClick={applyUpdate}>↻ Update Ready</button>}
