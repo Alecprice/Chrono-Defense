@@ -31,10 +31,41 @@ function resolveStorage(storage){return storage===undefined?browserStorage():sto
 function getItem(storage,key){try{return storage?.getItem?.(key)??null}catch{return null}}
 function setItem(storage,key,value){try{storage?.setItem?.(key,value);return true}catch{return false}}
 function removeItem(storage,key){try{storage?.removeItem?.(key);return true}catch{return false}}
+function emitSaveError(reason,message){try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save-error',{detail:{reason,message}}))}catch{}}
 
-export function loadSave(storage=undefined){const target=resolveStorage(storage);if(!target)return defaultSave();const primary=parseStored(getItem(target,SAVE_KEY));if(primary)return primary;const backup=parseStored(getItem(target,SAVE_BACKUP_KEY));if(backup){setItem(target,SAVE_KEY,JSON.stringify(backup));setItem(target,SAVE_META_KEY,JSON.stringify({lastRecovered:new Date().toISOString(),source:'backup'}));try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save-recovered'))}catch{}return backup}return defaultSave();}
-export function persistSave(save,storage=undefined,notify=true){const normalized=normalizeSave(save),target=resolveStorage(storage);if(!target)return normalized;const current=getItem(target,SAVE_KEY);if(parseStored(current))setItem(target,SAVE_BACKUP_KEY,current);setItem(target,SAVE_KEY,JSON.stringify(normalized));setItem(target,SAVE_META_KEY,JSON.stringify({lastSaved:new Date().toISOString(),version:normalized.version}));if(notify){try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save',{detail:{save:normalized}}))}catch{}}return normalized;}
+export function loadSave(storage=undefined){
+ const target=resolveStorage(storage);
+ if(!target)return defaultSave();
+ const primary=parseStored(getItem(target,SAVE_KEY));
+ if(primary)return primary;
+ const backup=parseStored(getItem(target,SAVE_BACKUP_KEY));
+ if(backup){
+   const promoted=setItem(target,SAVE_KEY,JSON.stringify(backup));
+   if(promoted){
+     setItem(target,SAVE_META_KEY,JSON.stringify({lastRecovered:new Date().toISOString(),source:'backup'}));
+     try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save-recovered'))}catch{}
+   }else emitSaveError('recovery-write-failed','Recovered progress is open, but this browser is blocking save storage. Export a backup before leaving.');
+   return backup;
+ }
+ return defaultSave();
+}
+export function persistSave(save,storage=undefined,notify=true){
+ const normalized=normalizeSave(save),target=resolveStorage(storage);
+ if(!target){emitSaveError('storage-unavailable','Progress is not saved because browser storage is unavailable.');return normalized}
+ const current=getItem(target,SAVE_KEY);
+ if(parseStored(current))setItem(target,SAVE_BACKUP_KEY,current);
+ const saved=setItem(target,SAVE_KEY,JSON.stringify(normalized));
+ if(!saved){emitSaveError('write-failed','Progress could not be saved on this device. Export a backup before leaving the game.');return normalized}
+ setItem(target,SAVE_META_KEY,JSON.stringify({lastSaved:new Date().toISOString(),version:normalized.version}));
+ if(notify){try{globalThis.dispatchEvent?.(new CustomEvent('chrono:save',{detail:{save:normalized}}))}catch{}}
+ return normalized;
+}
 export function loadSaveMeta(storage=undefined){const target=resolveStorage(storage);try{return JSON.parse(getItem(target,SAVE_META_KEY)||'{}')}catch{return{}}}
 export function restoreBackup(storage=undefined){const target=resolveStorage(storage),backup=parseStored(getItem(target,SAVE_BACKUP_KEY));if(!backup)throw new Error('No valid backup save is available.');if(!setItem(target,SAVE_KEY,JSON.stringify(backup)))throw new Error('This browser blocked local save restoration.');return backup;}
 export function hasBackup(storage=undefined){return Boolean(parseStored(getItem(resolveStorage(storage),SAVE_BACKUP_KEY)))}
-export function clearSaveStorage(storage=undefined){const target=resolveStorage(storage);removeItem(target,SAVE_KEY);removeItem(target,SAVE_BACKUP_KEY);removeItem(target,SAVE_META_KEY);return defaultSave();}
+export function clearSaveStorage(storage=undefined){
+ const target=resolveStorage(storage);
+ const cleared=[removeItem(target,SAVE_KEY),removeItem(target,SAVE_BACKUP_KEY),removeItem(target,SAVE_META_KEY)].every(Boolean);
+ if(!cleared)emitSaveError('clear-failed','This browser blocked part of the local reset. Your previous progress may still be stored.');
+ return defaultSave();
+}
