@@ -45,6 +45,10 @@ test('battle checkpoint loader accepts only fresh structurally valid checkpoints
       assert.equal(loadBattleCheckpoint(),null);
       assert.equal(store.getItem(BATTLE_CHECKPOINT_KEY),null,'corrupt checkpoints must be cleared');
     }
+
+    store.setItem(BATTLE_CHECKPOINT_KEY,'{"broken"');
+    assert.equal(loadBattleCheckpoint(),null);
+    assert.equal(store.getItem(BATTLE_CHECKPOINT_KEY),null,'malformed JSON must be cleared');
   }finally{
     Date.now=originalNow;
     if(originalDescriptor)Object.defineProperty(globalThis,'localStorage',originalDescriptor);
