@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build && node scripts/generate-precache.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "smoke:prod": "node scripts/smoke-production.mjs"
   },
   "dependencies": {
     "react": "latest",

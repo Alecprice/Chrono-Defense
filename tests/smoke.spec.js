@@ -20,7 +20,7 @@ test('tutorial hands off to campaign without blank screen',async({page})=>{
  await expect(page.locator('.campaign-screen')).toBeVisible();await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();expect(errors).toEqual([])
 });
 
-test('clicking the village cannot place or replace a tower',async({page})=>{await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Rock Thrower/}).click();const before=await page.locator('.cell.occupied').count();await page.locator('.village').dispatchEvent('click');await page.waitForTimeout(150);expect(await page.locator('.cell.occupied').count()).toBe(before);await expect(page.locator('.village')).toContainText('Village')});
+test('clicking the village cannot place or replace a tower',async({page})=>{await setReadySave(page);await enterStoneBattle(page);await page.getByRole('button',{name:/Rock Thrower/}).click();const before=await page.locator('.cell.occupied').count();await page.locator('.village').dispatchEvent('click');await page.waitForTimeout(150);expect(await page.locator('.cell.occupied')).toHaveCount(before);await expect(page.locator('.village')).toContainText('Village')});
 
 test('touch orientation blocks in portrait and resumes cleanly in landscape',async({browser})=>{const context=await browser.newContext({viewport:{width:844,height:390},hasTouch:true,isMobile:true}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await setReadySave(page);await enterStoneBattle(page);await page.setViewportSize({width:390,height:844});await expect(page.getByRole('heading',{name:/Rotate to landscape/})).toBeVisible();await page.setViewportSize({width:844,height:390});await expect(page.getByRole('heading',{name:/Rotate to landscape/})).toBeHidden();await expect(page.locator('.battle-screen')).toBeVisible();expect(errors).toEqual([]);await context.close()});
 
@@ -44,16 +44,29 @@ test('fully precached build reloads while browser is offline',async({browser})=>
 });
 
 test('blocked save storage shows a persistent not-saved warning',async({page})=>{
- const unlocked={...readySave,worlds:{...readySave.worlds,'stone-age':{...readySave.worlds['stone-age'],highestMap:25,completedMap:25},retro:{unlocked:true,highestMap:1,completedMap:0,cartridges:0,mastery:0,tutorialComplete:true,best:{},achievements:[],stats:{}}}};
- await page.addInitScript(({key,value})=>{localStorage.setItem(key,JSON.stringify(value));localStorage.setItem('chrono-welcome-seen','1')},{key:saveKey,value:unlocked});
+ await setReadySave(page);
  await page.goto('/');await expect(page.getByRole('heading',{name:'STONE AGE'})).toBeVisible();
+ await page.getByRole('button',{name:'Open timeline menu'}).click();
+ await page.getByRole('menuitem',{name:/Settings/}).click();
+ await expect(page.getByRole('dialog',{name:'Game Settings'})).toBeVisible();
  await page.evaluate(key=>{
    const original=Storage.prototype.setItem;
    Storage.prototype.setItem=function(storageKey,storageValue){if(storageKey===key)throw new DOMException('Storage blocked','QuotaExceededError');return original.call(this,storageKey,storageValue)};
  },saveKey);
- await page.locator('.era-road .era-button').click();
+ await page.getByRole('checkbox',{name:/Sound Effects/}).click();
  const warning=page.locator('.save-pill.error');
  await expect(warning).toHaveText(/Not Saved/);
  await expect(warning).toHaveAttribute('title',/could not be saved/i);
- await expect(page.getByRole('heading',{name:/RETRO/i})).toBeVisible();
+ await expect(page.getByRole('dialog',{name:'Game Settings'})).toBeVisible();
+});
+
+test('build identity is emitted but never frozen into the offline shell cache',async({request})=>{
+ const build=await request.get('/build-info.json');
+ expect(build.ok()).toBeTruthy();
+ expect(await build.json()).toMatchObject({service:'chrono-defense',version:'0.1.0'});
+ const manifest=await request.get('/precache-manifest.json');
+ expect(manifest.ok()).toBeTruthy();
+ const entries=await manifest.json();
+ expect(entries).toContain('/index.html');
+ expect(entries).not.toContain('/build-info.json');
 });
