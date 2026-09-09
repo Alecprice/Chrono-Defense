@@ -57,3 +57,14 @@ test('blocked save storage shows a persistent not-saved warning',async({page})=>
  await expect(warning).toHaveAttribute('title',/could not be saved/i);
  await expect(page.getByRole('heading',{name:/RETRO/i})).toBeVisible();
 });
+
+test('build identity is emitted but never frozen into the offline shell cache',async({request})=>{
+ const build=await request.get('/build-info.json');
+ expect(build.ok()).toBeTruthy();
+ expect(await build.json()).toMatchObject({service:'chrono-defense',version:'0.1.0'});
+ const manifest=await request.get('/precache-manifest.json');
+ expect(manifest.ok()).toBeTruthy();
+ const entries=await manifest.json();
+ expect(entries).toContain('/index.html');
+ expect(entries).not.toContain('/build-info.json');
+});
