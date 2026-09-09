@@ -19,7 +19,8 @@ export function localDayKey(date=new Date()){
 export function stoneAgeDailyChallenge(stoneSave={},date=new Date()){
   const key=localDayKey(date);
   const seed=hashString(`chrono-stone-age-${key}`);
-  const highest=Math.max(1,Math.min(25,stoneSave.highestMap??1));
+  const rawHighest=Number(stoneSave.highestMap);
+  const highest=Number.isFinite(rawHighest)?Math.max(1,Math.min(25,Math.floor(rawHighest))):1;
   const mapNumber=1+(seed%highest);
   const availableModes=MODE_ROTATION.filter(id=>{
     if(id==='hard')return (stoneSave.completedMap??0)>=5;
