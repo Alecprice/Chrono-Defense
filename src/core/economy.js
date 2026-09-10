@@ -4,6 +4,10 @@ function validCostAmount(amount) {
   return typeof amount === 'number' && Number.isFinite(amount) && amount >= 0;
 }
 
+function validResourceAmount(amount) {
+  return typeof amount === 'number' && Number.isFinite(amount);
+}
+
 export function canAfford(resources, cost = {}) {
   if (!resources || typeof resources !== 'object' || Array.isArray(resources)) return false;
   if (!cost || typeof cost !== 'object' || Array.isArray(cost)) return false;
@@ -19,7 +23,18 @@ export function spend(resources, cost = {}) {
 }
 
 export function addResources(resources, gains = {}) {
-  const next = { ...resources };
-  for (const [key, value] of Object.entries(gains)) next[key] = (next[key] ?? 0) + value;
-  return next;
+  if (!resources || typeof resources !== 'object' || Array.isArray(resources)) return resources;
+  if (!gains || typeof gains !== 'object' || Array.isArray(gains)) return resources;
+  try {
+    const entries = Object.entries(gains);
+    for (const [key, value] of entries) {
+      const current = resources[key] ?? 0;
+      if (!validResourceAmount(value) || !validResourceAmount(current)) return resources;
+    }
+    const next = { ...resources };
+    for (const [key, value] of entries) next[key] = (next[key] ?? 0) + value;
+    return next;
+  } catch {
+    return resources;
+  }
 }
