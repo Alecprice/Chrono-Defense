@@ -20,3 +20,19 @@ test('daily challenge recovers from corrupt non-finite map progress',()=>{
     assert.equal(Number.isFinite(result.mapNumber),true);
   }
 });
+
+test('daily challenge treats malformed save containers as fresh progress',()=>{
+  const baseline=stoneAgeDailyChallenge({},day);
+  for(const save of [null,[],42,'bad',true]){
+    assert.doesNotThrow(()=>stoneAgeDailyChallenge(save,day));
+    assert.deepEqual(stoneAgeDailyChallenge(save,day),baseline);
+  }
+});
+
+test('daily challenge still honors valid progression fields',()=>{
+  const result=stoneAgeDailyChallenge({highestMap:25,completedMap:25,totems:100},day);
+  assert.equal(Number.isInteger(result.mapNumber),true);
+  assert.ok(result.mapNumber>=1&&result.mapNumber<=25);
+  assert.equal(typeof result.modeId,'string');
+  assert.equal(typeof result.objective,'string');
+});
