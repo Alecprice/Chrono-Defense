@@ -9,6 +9,8 @@ function hashString(value=''){
   return hash>>>0;
 }
 
+function record(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}
+
 export function localDayKey(date=new Date()){
   const year=date.getFullYear();
   const month=String(date.getMonth()+1).padStart(2,'0');
@@ -17,17 +19,18 @@ export function localDayKey(date=new Date()){
 }
 
 export function stoneAgeDailyChallenge(stoneSave={},date=new Date()){
+  const save=record(stoneSave);
   const key=localDayKey(date);
   const seed=hashString(`chrono-stone-age-${key}`);
-  const rawHighest=Number(stoneSave.highestMap);
+  const rawHighest=Number(save.highestMap);
   const highest=Number.isFinite(rawHighest)?Math.max(1,Math.min(25,Math.floor(rawHighest))):1;
   const mapNumber=1+(seed%highest);
   const availableModes=MODE_ROTATION.filter(id=>{
-    if(id==='hard')return (stoneSave.completedMap??0)>=5;
-    if(id==='survival')return (stoneSave.completedMap??0)>=10;
-    if(id==='scarcity')return (stoneSave.totems??0)>=25;
-    if(id==='one-tower')return (stoneSave.totems??0)>=35;
-    if(id==='tribal-warfare')return (stoneSave.totems??0)>=50;
+    if(id==='hard')return (save.completedMap??0)>=5;
+    if(id==='survival')return (save.completedMap??0)>=10;
+    if(id==='scarcity')return (save.totems??0)>=25;
+    if(id==='one-tower')return (save.totems??0)>=35;
+    if(id==='tribal-warfare')return (save.totems??0)>=50;
     return true;
   });
   const modeId=availableModes[(seed>>>8)%availableModes.length]??'normal';
